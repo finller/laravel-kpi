@@ -2,9 +2,9 @@
 
 namespace Finller\Kpi\Tests;
 
+use Finller\Kpi\KpiServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Orchestra\Testbench\TestCase as Orchestra;
-use Finller\Kpi\KpiServiceProvider;
 
 class TestCase extends Orchestra
 {
