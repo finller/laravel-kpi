@@ -20,6 +20,6 @@ class KpiServiceProvider extends PackageServiceProvider
             ->hasConfigFile()
             // ->hasViews()
             ->hasMigration('create_kpi_table');
-            // ->hasCommand(KpiCommand::class);
+        // ->hasCommand(KpiCommand::class);
     }
 }
