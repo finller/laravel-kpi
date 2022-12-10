@@ -12,8 +12,6 @@ class Kpi extends Model
 {
     use HasFactory;
 
-    protected $table = 'kpi';
-
     protected $fillable = [
         'key',
         'string_value',

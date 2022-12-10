@@ -8,12 +8,12 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('kpi_table', function (Blueprint $table) {
+        Schema::create('kpis_table', function (Blueprint $table) {
             $table->id();
 
             $table->string('key')->index(); // A key to identify the kpi and group them
             
-            //store any possible kind of value
+            // store any possible kind of value
             $table->decimal('number_value', 12, 2)->nullable();
             
             $table->string('string_value')->nullable();
