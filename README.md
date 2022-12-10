@@ -35,17 +35,13 @@ return [
 ];
 ```
 
-Optionally, you can publish the views using
-
-```bash
-php artisan vendor:publish --tag="laravel-kpi-views"
-```
-
 ## Usage
 
 ```php
-$kpi = new Finller\Kpi();
-echo $kpi->echoPhrase('Hello, Finller!');
+Kpi::create([
+    'key' => 'users:count',
+    'number_value' => User::count(),
+]);
 ```
 
 ## Testing
