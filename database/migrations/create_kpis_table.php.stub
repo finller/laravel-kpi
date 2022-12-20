@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('kpis_table', function (Blueprint $table) {
+        Schema::create('kpis', function (Blueprint $table) {
             $table->id();
 
             $table->string('key')->index(); // A key to identify the kpi and group them
