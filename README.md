@@ -1,4 +1,4 @@
-# Store and query KPI from your app easily
+# Store, analyse and retrieve KPI over time in your Laravel App
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/finller/laravel-kpi.svg?style=flat-square)](https://packagist.org/packages/finller/laravel-kpi)
 [![GitHub Tests Action Status](https://img.shields.io/github/workflow/status/finller/laravel-kpi/run-tests?label=tests)](https://github.com/finller/laravel-kpi/actions?query=workflow%3Arun-tests+branch%3Amain)
