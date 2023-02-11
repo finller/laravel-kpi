@@ -13,18 +13,22 @@ class KpiCollection extends Collection
     {
         $collection = new static($this->sortBy('created_at')->all());  // @phpstan-ignore-line
 
-        if (! $interval && ($this->count() < 2)) {
+        if (!$interval && ($this->count() < 2)) {
             throw new Exception("interval between items can't be guessed from a single element, provid the interval parameter.");
         }
 
-        /** @var ?Carbon $start */
-        $start = $start ?? $collection->first()?->created_at;
-        /** @var ?Carbon $end */
-        $end = $end ?? $collection->last()?->created_at;
+        /** @var ?Kpi */
+        $firstItem = $collection->first();
+        /** @var ?Kpi */
+        $lastItem = $collection->last();
+        /** @var ?Carbon */
+        $start = $start ?? $firstItem?->created_at;
+        /** @var ?Carbon */
+        $end = $end ?? $lastItem?->created_at;
 
         $interval = $interval ?? $this->guessInterval();
 
-        if (! $start || ! $end || ! $interval) {
+        if (!$start || !$end || !$interval) {
             return $collection;
         }
 
@@ -36,7 +40,7 @@ class KpiCollection extends Collection
             /** @var ?Kpi $item */
             $item = $collection->get($indexItem);
 
-            if (! $item?->created_at->isSameAs($dateFormatComparator, $date)) {
+            if (!$item?->created_at->isSameAs($dateFormatComparator, $date)) {
                 $placeholder = new Kpi(
                     $default ??
                         $collection->get($indexItem - 1)?->toArray() ??
@@ -60,31 +64,32 @@ class KpiCollection extends Collection
         return $collection;
     }
 
-    public static function getFormatDateComparator(string $interval)
+    public static function getFormatDateComparator(string $interval): ?string
     {
         return match ($interval) {
             'day' => 'Y-m-d',
             'week' => 'Y-W',
             'month' => 'Y-m',
             'year' => 'Y',
+            default => null
         };
     }
 
     public static function getIntervalFromDates(Carbon $before, Carbon $after): ?string
     {
-        if ($after->isNextDay($before)) {
+        if ($after->isSameDay($before->clone()->addDay())) {
             return 'day';
         }
 
-        if ($after->isNextWeek($before)) {
+        if ($after->isSameDay($before->clone()->addWeek())) {
             return 'week';
         }
 
-        if ($after->isNextMonth($before)) {
+        if ($after->isSameDay($before->clone()->addMonth())) {
             return 'month';
         }
 
-        if ($after->isNextYear($before)) {
+        if ($after->isSameDay($before->clone()->addYear())) {
             return 'year';
         }
 
@@ -97,6 +102,11 @@ class KpiCollection extends Collection
             return null;
         }
 
-        return static::getIntervalFromDates($this->get(0)->created_at, $this->get(1)->created_at);
+        /** @var Kpi */
+        $firstItem = $this->get(0);
+        /** @var Kpi */
+        $secondItem = $this->get(1);
+
+        return static::getIntervalFromDates($firstItem->created_at, $secondItem->created_at);
     }
 }
