@@ -1,6 +1,5 @@
 <?php
 
-use Carbon\CarbonPeriod;
 use Finller\Kpi\Kpi;
 use Finller\Kpi\Support\KpiCollection;
 
