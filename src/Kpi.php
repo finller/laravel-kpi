@@ -44,22 +44,22 @@ class Kpi extends Model
 
     public function scopePerDay(Builder $query)
     {
-        return $query->perInterval(DB::raw("DAY(created_at), MONTH(created_at), YEAR(created_at)")); // @phpstan-ignore-line
+        return $query->perInterval(DB::raw('DAY(created_at), MONTH(created_at), YEAR(created_at)')); // @phpstan-ignore-line
     }
 
     public function scopePerWeek(Builder $query)
     {
-        return $query->perInterval(DB::raw("WEEK(created_at), MONTH(created_at), YEAR(created_at)")); // @phpstan-ignore-line
+        return $query->perInterval(DB::raw('WEEK(created_at), MONTH(created_at), YEAR(created_at)')); // @phpstan-ignore-line
     }
 
     public function scopePerMonth(Builder $query)
     {
-        return $query->perInterval(DB::raw("MONTH(created_at), YEAR(created_at)")); // @phpstan-ignore-line
+        return $query->perInterval(DB::raw('MONTH(created_at), YEAR(created_at)')); // @phpstan-ignore-line
     }
 
     public function scopePerYear(Builder $query)
     {
-        return $query->perInterval(DB::raw("YEAR(created_at)")); // @phpstan-ignore-line
+        return $query->perInterval(DB::raw('YEAR(created_at)')); // @phpstan-ignore-line
     }
 
     protected function scopePerInterval(Builder $query, \Illuminate\Database\Query\Expression $groupBy)
@@ -83,8 +83,8 @@ class Kpi extends Model
     public function scopeBetween(Builder $query, ?Carbon $start = null, ?Carbon $end = null)
     {
         return $query
-            ->when($start, fn ($q) => $q->whereDate('created_at', ">=", $start))
-            ->when($start, fn ($q) => $q->whereDate('created_at', "<", $end));
+            ->when($start, fn ($q) => $q->whereDate('created_at', '>=', $start))
+            ->when($start, fn ($q) => $q->whereDate('created_at', '<', $end));
     }
 
     public function newCollection(array $models = []): KpiCollection
