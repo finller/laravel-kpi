@@ -6,7 +6,6 @@ use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Finller\Kpi\Kpi;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Database\Eloquent\Factories\Sequence;
 
 class KpiFactory extends Factory
 {
@@ -15,7 +14,7 @@ class KpiFactory extends Factory
     public function definition()
     {
         return [
-            'key' => fake()->randomElement(['users', 'messages', 'pages']) . ":" . fake()->randomElement(['count', 'max', 'min']),
+            'key' => fake()->randomElement(['users', 'messages', 'pages']).':'.fake()->randomElement(['count', 'max', 'min']),
         ];
     }
 
@@ -73,7 +72,6 @@ class KpiFactory extends Factory
         $period = CarbonPeriod::between($start, $end)
             ->interval("1 {$interval}")
             ->toArray();
-
 
         return $this
             ->count(count($period))

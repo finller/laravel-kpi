@@ -1,6 +1,5 @@
 <?php
 
-use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Finller\Kpi\Kpi;
 use Finller\Kpi\Support\KpiCollection;
@@ -10,19 +9,19 @@ $supportedIntervals = ['day', 'week', 'month', 'year'];
 it('can store number value', function () {
     /** @var Kpi */
     $kpi = Kpi::factory()->number()->create();
-    expect(Kpi::query()->where("number_value", $kpi->number_value)->find($kpi->id))->toBeInstanceOf(Kpi::class);
+    expect(Kpi::query()->where('number_value', $kpi->number_value)->find($kpi->id))->toBeInstanceOf(Kpi::class);
 });
 
 it('can store string value', function () {
     /** @var Kpi */
     $kpi = Kpi::factory()->string()->create();
-    expect(Kpi::query()->where("string_value", $kpi->string_value)->find($kpi->id))->toBeInstanceOf(Kpi::class);
+    expect(Kpi::query()->where('string_value', $kpi->string_value)->find($kpi->id))->toBeInstanceOf(Kpi::class);
 });
 
 it('can store json value', function () {
     /** @var Kpi */
     $kpi = Kpi::factory()->json()->create();
-    expect(Kpi::query()->whereNotNull("json_value")->find($kpi->id))->toBeInstanceOf(Kpi::class);
+    expect(Kpi::query()->whereNotNull('json_value')->find($kpi->id))->toBeInstanceOf(Kpi::class);
 });
 
 it('can store money value', function () {
@@ -30,18 +29,17 @@ it('can store money value', function () {
     $kpi = Kpi::factory()->money()->create();
     expect(
         Kpi::query()
-            ->where("money_value", $kpi->money_value)
-            ->where("money_currency", $kpi->money_currency)
+            ->where('money_value', $kpi->money_value)
+            ->where('money_currency', $kpi->money_currency)
             ->find($kpi->id)
     )->toBeInstanceOf(Kpi::class);
 });
-
 
 it('can query kpis per interval', function ($interval) {
     $key = "test:query:{$interval}";
 
     Kpi::factory([
-        'key' => $key
+        'key' => $key,
     ])->number()->between(
         $start = now()->startOfDay()->subMonth(),
         $end = now()->startOfDay(),
@@ -62,7 +60,7 @@ it('can fill gaps between intervals', function ($interval) {
 
     /** @var KpiCollection $kpis */
     $kpis = Kpi::factory([
-        'key' => $key
+        'key' => $key,
     ])->number()->between(
         $start,
         $end,
@@ -87,7 +85,6 @@ it('can fill gaps between intervals', function ($interval) {
     expect($remainingKpisWithGapsFilled)->toHaveCount($expectedKpisCount);
 })->with($supportedIntervals);
 
-
 it('can fill gaps between intervals by guessing parameters', function ($interval) {
     $key = "test:fillGapsByGuessing:{$interval}";
     $start = now()->startOfDay()->sub($interval, 10);
@@ -95,7 +92,7 @@ it('can fill gaps between intervals by guessing parameters', function ($interval
 
     /** @var KpiCollection $kpis */
     $kpis = Kpi::factory([
-        'key' => $key
+        'key' => $key,
     ])->number()->between(
         $start,
         $end,
@@ -120,7 +117,6 @@ it('can fill gaps between intervals by guessing parameters', function ($interval
     expect($remainingKpisWithGapsFilled)->toHaveCount($expectedKpisCount);
 })->with($supportedIntervals);
 
-
 it('can fill gaps between intervals with sibling value', function ($interval) {
     $key = "test:fillGapsWithSibling:{$interval}";
     $start = now()->startOfDay()->sub($interval, 10);
@@ -128,7 +124,7 @@ it('can fill gaps between intervals with sibling value', function ($interval) {
 
     /** @var KpiCollection $kpis */
     $kpis = Kpi::factory([
-        'key' => $key
+        'key' => $key,
     ])->number()->between(
         $start,
         $end,
@@ -162,4 +158,4 @@ it('can fill gaps between intervals with sibling value', function ($interval) {
     // Empty gaps get the value of the previous available kpi
     expect($remainingKpisWithGapsFilled->get(5)->number_value)
         ->toBe($kpis->get(4)->number_value);
-})->with(["day"]);
+})->with(['day']);
