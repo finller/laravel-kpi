@@ -87,6 +87,18 @@ class Kpi extends Model
             ->whereDate('created_at', '<=', $end);
     }
 
+    public function scopeAfter(Builder $query, Carbon $date)
+    {
+        return $query
+            ->whereDate('created_at', '>=', $date);
+    }
+
+    public function scopeBefore(Builder $query, Carbon $date)
+    {
+        return $query
+            ->whereDate('created_at', '<=', $date);
+    }
+
     public function newCollection(array $models = []): KpiCollection
     {
         return new KpiCollection($models);
