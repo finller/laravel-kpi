@@ -2,7 +2,6 @@
 
 namespace Finller\Kpi;
 
-use Finller\Kpi\Commands\KpiCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
