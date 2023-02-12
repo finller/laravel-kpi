@@ -21,7 +21,7 @@ trait HasKpi
     public static function snapshotKpiCount(): Kpi
     {
         return Kpi::create([
-            'key' => static::getKpiNamespace() . ':count',
+            'key' => static::getKpiNamespace().':count',
             'number_value' => static::count(),
         ]);
     }

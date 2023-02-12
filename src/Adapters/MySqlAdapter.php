@@ -11,9 +11,9 @@ class MySqlAdapter extends AbstractAdapter
     {
         return match ($interval) {
             'day' => DB::raw("DAY({$column}), MONTH({$column}), YEAR({$column})"),
-            "week" => DB::raw("WEEK({$column}), MONTH({$column}), YEAR({$column})"),
-            "month" => DB::raw("MONTH({$column}), YEAR({$column})"),
-            "year" => DB::raw("YEAR({$column})"),
+            'week' => DB::raw("WEEK({$column}), MONTH({$column}), YEAR({$column})"),
+            'month' => DB::raw("MONTH({$column}), YEAR({$column})"),
+            'year' => DB::raw("YEAR({$column})"),
             default => throw new Exception("Interval '$interval' value not supported")
         };
     }

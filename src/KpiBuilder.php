@@ -20,7 +20,7 @@ class KpiBuilder
 
     public function __construct(public Builder $builder)
     {
-        // 
+        //
     }
 
     public static function query(null|string|Builder $builder = null): self
@@ -40,24 +40,28 @@ class KpiBuilder
     {
         $this->start = $start;
         $this->end = $end;
+
         return $this;
     }
 
     public function after(Carbon $date): static
     {
         $this->start = $date;
+
         return $this;
     }
 
     public function before(Carbon $date): static
     {
         $this->end = $date;
+
         return $this;
     }
 
     public function perInterval(string $interval): static
     {
         $this->interval = $interval;
+
         return $this;
     }
 
@@ -93,6 +97,7 @@ class KpiBuilder
     {
         $this->fillGaps = true;
         $this->defaultGapValue = $defaultGapValue;
+
         return $this;
     }
 

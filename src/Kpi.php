@@ -77,37 +77,38 @@ class Kpi extends Model
                 ->from($query->getQuery()->from)
                 ->when($key, fn ($b) => $b->where('key', $key))
                 ->select(DB::raw('max(kpis.id) as id'))
-                ->groupBy($this->getSqlDateAdapter($query)->groupBy("kpis.created_at", $interval));
+                ->groupBy($this->getSqlDateAdapter($query)->groupBy('kpis.created_at', $interval));
         });
     }
 
     public function scopePerDay(Builder $query)
     {
-        return $query->perInterval("day"); // @phpstan-ignore-line
+        return $query->perInterval('day'); // @phpstan-ignore-line
     }
 
     public function scopePerWeek(Builder $query)
     {
-        return $query->perInterval("week"); // @phpstan-ignore-line
+        return $query->perInterval('week'); // @phpstan-ignore-line
     }
 
     public function scopePerMonth(Builder $query)
     {
-        return $query->perInterval("month"); // @phpstan-ignore-line
+        return $query->perInterval('month'); // @phpstan-ignore-line
     }
 
     public function scopePerYear(Builder $query)
     {
-        return $query->perInterval("year"); // @phpstan-ignore-line
+        return $query->perInterval('year'); // @phpstan-ignore-line
     }
 
     protected function getSqlDateAdapter(Builder $builder): AbstractAdapter
     {
         $driver = $builder->getConnection()->getDriverName(); // @phpstan-ignore-line
+
         return match ($driver) {
             'mysql' => new MySqlAdapter(),
             'sqlite' => new SqliteAdapter(),
-                // 'pgsql' => new PgsqlAdapter(),
+            // 'pgsql' => new PgsqlAdapter(),
             default => throw new Error("Unsupported database driver : {$driver}."),
         };
     }

@@ -117,7 +117,6 @@ it('query only the latest kpi for each interval', function ($interval) {
         ->get();
 
     expect($kpisOnInterval)->toHaveCount($periodQueried->count());
-
 })->with($supportedIntervals);
 
 it('can fill gaps between intervals', function ($interval) {

@@ -11,9 +11,9 @@ class SqliteAdapter extends AbstractAdapter
     {
         return match ($interval) {
             'day' => DB::raw("strftime('%Y-%m-%d', {$column})"),
-            "week" => DB::raw("strftime('%Y-%W', {$column})"),
-            "month" => DB::raw("strftime('%Y-%m', {$column})"),
-            "year" => DB::raw("strftime('%Y', {$column})"),
+            'week' => DB::raw("strftime('%Y-%W', {$column})"),
+            'month' => DB::raw("strftime('%Y-%m', {$column})"),
+            'year' => DB::raw("strftime('%Y', {$column})"),
             default => throw new Exception("Interval '$interval' value not supported")
         };
     }
