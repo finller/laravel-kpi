@@ -17,9 +17,6 @@ class KpiServiceProvider extends PackageServiceProvider
          */
         $package
             ->name('laravel-kpi')
-            ->hasConfigFile()
-            // ->hasViews()
             ->hasMigration('create_kpi_table');
-        // ->hasCommand(KpiCommand::class);
     }
 }
