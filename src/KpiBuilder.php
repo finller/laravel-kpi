@@ -72,17 +72,17 @@ class KpiBuilder
 
     public function perWeek(): static
     {
-        return $this->perInterval('day');
+        return $this->perInterval('week');
     }
 
     public function perMonth(): static
     {
-        return $this->perInterval('day');
+        return $this->perInterval('month');
     }
 
     public function perYear(): static
     {
-        return $this->perInterval('day');
+        return $this->perInterval('year');
     }
 
     public function getQuery(): Builder
