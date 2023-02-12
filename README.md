@@ -5,8 +5,6 @@
 [![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/finller/laravel-kpi/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/finller/laravel-kpi/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/finller/laravel-kpi.svg?style=flat-square)](https://packagist.org/packages/finller/laravel-kpi)
 
-
-
 This package provides a way to store kpis from your app in your database and then retreive them easily in different ways. It is espacially usefull to tracks things related to your models like:
 
 -   the number of users
@@ -66,8 +64,18 @@ You can retreive kpis by using usefull scopes and native eloquent Builder method
 For example, if a want to query kpis under `users:count`, I would use:
 
 ```php
+// With Kpi model
+use Finller\Kpi\Kpi;
 Kpi::where('key', "users:count")->get();
-User::kpi('count')->get(); // with HasKpi trait on User
+
+// With HasKpi trait
+use App\Models\User;
+User::kpi('count')->get();
+
+// With HasKpi KpiBuilder
+use Finller\Kpi\KpiBuilder;
+KpiBuilder::query("users:count")->get();
+KpiBuilder::query(Kpi::query()->where("key", "users:count"))->get();
 ```
 
 #### Query by date
@@ -102,15 +110,23 @@ Kpi::query()->perYear()->get();
 
 In some cases, you could have miss a snapshot. Let's say that your snapshot kpi command failed or your server was down.
 
-To fill the gaps let by missing values, you can use the `fillGaps` method available on `KpiCollection`.
+To fill the gaps let by missing values, you can use the `fillGaps` method available on KpiBuilder or available on `KpiCollection`.
 By default the placeholders will be a copy of their previous kpi.
 
+For convenience the `KpiBuilder` is the best option as it will give you better typed values and share parameters between fillGaps and between.
+
 ```php
+KpiBuilder::query('users:blocked:count')
+    ->perDay()
+    ->between(now()->subWeek(), now())
+    ->fillGaps()
+    ->get();
+
 Kpi::query()
     ->where('key', 'users:blocked:count')
     ->perDay()
     ->get()
-    ->fillGaps(
+    ->fillGaps( // optional parameters
         start: now(),
         end: now()->subWeek(),
         interval: 'day',
@@ -121,7 +137,7 @@ Kpi::query()
     ->where('key', 'users:blocked:count')
     ->perDay()
     ->get()
-    ->fillGaps(); // if you specify nothing: start, end and interval value will be guessed from you dataset
+    ->fillGaps(); // if you specify nothing when using KpiCollection: start, end and interval value will be guessed from you dataset
 ```
 
 ## Testing

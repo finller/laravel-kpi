@@ -3,6 +3,10 @@
 namespace Finller\Kpi;
 
 use Carbon\Carbon;
+use Error;
+use Finller\Kpi\Adapters\AbstractAdapter;
+use Finller\Kpi\Adapters\MySqlAdapter;
+use Finller\Kpi\Adapters\SqliteAdapter;
 use Finller\Kpi\Support\KpiCollection;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\ArrayObject;
@@ -42,61 +46,70 @@ class Kpi extends Model
         'metadata' => AsArrayObject::class,
     ];
 
-    public function scopePerDay(Builder $query)
-    {
-        return $query->perInterval(DB::raw('DAY(created_at), MONTH(created_at), YEAR(created_at)')); // @phpstan-ignore-line
-    }
-
-    public function scopePerWeek(Builder $query)
-    {
-        return $query->perInterval(DB::raw('WEEK(created_at), MONTH(created_at), YEAR(created_at)')); // @phpstan-ignore-line
-    }
-
-    public function scopePerMonth(Builder $query)
-    {
-        return $query->perInterval(DB::raw('MONTH(created_at), YEAR(created_at)')); // @phpstan-ignore-line
-    }
-
-    public function scopePerYear(Builder $query)
-    {
-        return $query->perInterval(DB::raw('YEAR(created_at)')); // @phpstan-ignore-line
-    }
-
-    protected function scopePerInterval(Builder $query, \Illuminate\Database\Query\Expression $groupBy)
-    {
-        // find what key is searched for
-        $key = collect($query->getQuery()->wheres)
-            ->where('column', 'key')
-            ->pluck('value')
-            ->first();
-
-        //only get most recent kpi for each day
-        return $query->whereIn('id', function ($q) use ($key, $groupBy) {
-            $q
-                ->from($this->table)
-                ->where('key', $key)
-                ->select(DB::raw('max(id) as id'))
-                ->groupBy($groupBy);
-        });
-    }
-
     public function scopeBetween(Builder $query, Carbon $start, Carbon $end)
     {
         return $query
-            ->whereDate('created_at', '>=', $start)
-            ->whereDate('created_at', '<=', $end);
+            ->where('kpis.created_at', '>=', $start)
+            ->where('kpis.created_at', '<=', $end);
     }
 
     public function scopeAfter(Builder $query, Carbon $date)
     {
-        return $query
-            ->whereDate('created_at', '>=', $date);
+        return $query->where('kpis.created_at', '>=', $date);
     }
 
     public function scopeBefore(Builder $query, Carbon $date)
     {
-        return $query
-            ->whereDate('created_at', '<=', $date);
+        return $query->where('kpis.created_at', '<=', $date);
+    }
+
+    public function scopePerInterval(Builder $query, string $interval)
+    {
+        // find what key is searched for
+        $key = collect($query->getQuery()->wheres)
+            ->where('column', 'kpis.key')
+            ->pluck('value')
+            ->first();
+
+        //only get most recent kpi for each day
+        return $query->whereIn('kpis.id', function ($q) use ($key, $query, $interval) {
+            $q
+                ->from($query->getQuery()->from)
+                ->when($key, fn ($b) => $b->where('key', $key))
+                ->select(DB::raw('max(kpis.id) as id'))
+                ->groupBy($this->getSqlDateAdapter($query)->groupBy("kpis.created_at", $interval));
+        });
+    }
+
+    public function scopePerDay(Builder $query)
+    {
+        return $query->perInterval("day"); // @phpstan-ignore-line
+    }
+
+    public function scopePerWeek(Builder $query)
+    {
+        return $query->perInterval("week"); // @phpstan-ignore-line
+    }
+
+    public function scopePerMonth(Builder $query)
+    {
+        return $query->perInterval("month"); // @phpstan-ignore-line
+    }
+
+    public function scopePerYear(Builder $query)
+    {
+        return $query->perInterval("year"); // @phpstan-ignore-line
+    }
+
+    protected function getSqlDateAdapter(Builder $builder): AbstractAdapter
+    {
+        $driver = $builder->getConnection()->getDriverName(); // @phpstan-ignore-line
+        return match ($driver) {
+            'mysql' => new MySqlAdapter(),
+            'sqlite' => new SqliteAdapter(),
+                // 'pgsql' => new PgsqlAdapter(),
+            default => throw new Error("Unsupported database driver : {$driver}."),
+        };
     }
 
     public function newCollection(array $models = []): KpiCollection

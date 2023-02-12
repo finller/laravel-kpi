@@ -35,22 +35,89 @@ it('can store money value', function () {
     )->toBeInstanceOf(Kpi::class);
 });
 
-it('can query kpis per interval', function ($interval) {
-    $key = "test:query:{$interval}";
+it('can seed kpis on interval', function ($interval) {
+    $key = "test:seedKpis:{$interval}";
 
-    Kpi::factory([
+    $intervalLength = 10;
+
+    $startData = now()->startOfDay()->sub($interval, $intervalLength);
+    $endData = now()->startOfDay();
+
+    $kpis = Kpi::factory([
         'key' => $key,
     ])->number()->between(
-        $start = now()->startOfDay()->subMonth(),
-        $end = now()->startOfDay(),
+        $startData,
+        $endData,
         $interval
     )->create();
 
-    expect(
-        Kpi::query()->where('key', $key)->count()
-    )->toBe(
-        CarbonPeriod::between($start, $end)->interval("1 {$interval}")->count()
-    );
+    $period = CarbonPeriod::between($startData, $endData)->interval("1 {$interval}");
+
+    expect($kpis)->toHaveCount($period->count());
+    expect(Kpi::query()->where('key', $key)->count())->toBe($period->count());
+})->with($supportedIntervals);
+
+it('can query kpis on a specific period', function ($interval) {
+    $key = "test:queryOnPeriod:{$interval}";
+
+    $intervalLength = 10;
+
+    // create larger data window than queried window
+    $startData = now()->startOfDay()->sub($interval, $intervalLength + 2);
+    $endData = now()->startOfDay()->add($interval, $intervalLength + 2);
+
+    $kpis = Kpi::factory([
+        'key' => $key,
+    ])->number()->between($startData, $endData, $interval)->create();
+
+    $startQuery = now()->startOfDay()->sub($interval, $intervalLength);
+    $endQuery = now()->startOfDay();
+
+    $periodQueried = CarbonPeriod::between($startQuery, $endQuery)->interval("1 {$interval}");
+
+    /** @var KpiCollection */
+    $kpisOnInterval = Kpi::query()
+        ->where('key', $key)
+        ->between($startQuery, $endQuery)
+        ->perInterval($interval)
+        ->get();
+
+    expect($kpisOnInterval)->toHaveCount($periodQueried->count());
+
+    /** @var Kpi */
+    $firstKpi = $kpisOnInterval->first();
+    $lastKpi = $kpisOnInterval->last();
+
+    expect($firstKpi?->created_at->isSameDay($startQuery));
+    expect($lastKpi?->created_at->isSameDay($endQuery));
+})->with($supportedIntervals);
+
+it('query only the latest kpi for each interval', function ($interval) {
+    $key = "test:queryTheLatestOnPeriod:{$interval}";
+
+    $intervalLength = 5;
+
+    $start = now()->startOfDay()->sub($interval, $intervalLength);
+    $end = now()->startOfDay();
+    $periodQueried = CarbonPeriod::between($start, $end)->interval("1 {$interval}");
+
+    // Seed data twice a day
+    Kpi::factory([
+        'key' => $key,
+    ])->number()->between($start, $end, $interval)->create();
+    Kpi::factory([
+        'key' => $key,
+    ])->number()->between($start, $end, $interval)->create();
+
+    /** @var KpiCollection */
+    $kpisOnInterval = Kpi::query()
+        ->where('key', $key)
+        ->between($start, $end)
+        ->perInterval($interval)
+        ->get();
+
+    expect($kpisOnInterval)->toHaveCount($periodQueried->count());
+
 })->with($supportedIntervals);
 
 it('can fill gaps between intervals', function ($interval) {
@@ -158,4 +225,4 @@ it('can fill gaps between intervals with sibling value', function ($interval) {
     // Empty gaps get the value of the previous available kpi
     expect($remainingKpisWithGapsFilled->get(5)->number_value)
         ->toBe($kpis->get(4)->number_value);
-})->with(['day']);
+})->with($supportedIntervals);
