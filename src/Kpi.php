@@ -80,11 +80,11 @@ class Kpi extends Model
         });
     }
 
-    public function scopeBetween(Builder $query, ?Carbon $start = null, ?Carbon $end = null)
+    public function scopeBetween(Builder $query, Carbon $start, Carbon $end)
     {
         return $query
-            ->when($start, fn ($q) => $q->whereDate('created_at', '>=', $start))
-            ->when($start, fn ($q) => $q->whereDate('created_at', '<', $end));
+            ->whereDate('created_at', '>=', $start)
+            ->whereDate('created_at', '<=', $end);
     }
 
     public function newCollection(array $models = []): KpiCollection
