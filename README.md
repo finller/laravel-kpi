@@ -127,8 +127,8 @@ Kpi::query()
     ->perDay()
     ->get()
     ->fillGaps( // optional parameters
-        start: now(),
-        end: now()->subWeek(),
+        start: now()->subWeek(),
+        end: now(),
         interval: 'day',
         default: ['number_value' => 0]
     );
@@ -137,7 +137,7 @@ Kpi::query()
     ->where('key', 'users:blocked:count')
     ->perDay()
     ->get()
-    ->fillGaps(); // if you specify nothing when using KpiCollection: start, end and interval value will be guessed from you dataset
+    ->fillGaps(); // if you do not specify anything when using KpiCollection, the start, end and  the interval values will be guessed from you dataset
 ```
 
 ## Testing
