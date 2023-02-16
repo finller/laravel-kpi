@@ -57,11 +57,11 @@ A standard way to save your kpi values would be in a command that runs every day
 
 You are free to store as much kpis as needed, even multiple times in a day, so you got more recent data.
 
-### Step 2: Retreive you kpis
+### Step 2: Retreive your kpis
 
-You can retreive kpis by using usefull scopes and native eloquent Builder methods.
+You can retreive kpis by using usefull scopes and the native eloquent Builder methods.
 
-For example, if a want to query kpis under `users:count`, I would use:
+For example, if I want to query kpis under `users:count`, I would use:
 
 ```php
 // With Kpi model
@@ -72,7 +72,7 @@ Kpi::where('key', "users:count")->get();
 use App\Models\User;
 User::kpi('count')->get();
 
-// With HasKpi KpiBuilder
+// With KpiBuilder
 use Finller\Kpi\KpiBuilder;
 KpiBuilder::query("users:count")->get();
 KpiBuilder::query(Kpi::query()->where("key", "users:count"))->get();
@@ -91,7 +91,7 @@ User::kpi('count')
     ->get();
 ```
 
-As we are grouping by date, you could have more than 1 snapshot of the same key for a date. In this situation, this package will give you only the most recent snaphot of each date.
+As we are grouping by date/period, you could have more than 1 snapshot of the same key for a date/period. In this situation, this package will give you only the most recent snaphot of each date/period.
 
 In the previous example, I would get the most recent count of users of each day. This is also true for other kind of supported intervals.
 
@@ -108,12 +108,12 @@ Kpi::query()->perYear()->get();
 
 #### Fill gaps between dates
 
-In some cases, you could have miss a snapshot. Let's say that your snapshot kpi command failed or your server was down.
+In some cases, you could have missed a snapshot. Let's say that your snapshot kpi command failed or your server was down.
 
-To fill the gaps let by missing values, you can use the `fillGaps` method available on KpiBuilder or available on `KpiCollection`.
+To fill the gaps let by missing values, you can use the `fillGaps` method available on `KpiBuilder` or  `KpiCollection`.
 By default the placeholders will be a copy of their previous kpi.
 
-For convenience the `KpiBuilder` is the best option as it will give you better typed values and share parameters between fillGaps and between.
+For convenience the `KpiBuilder` is the best option as it will give you better typed values and shares parameters between fillGaps and between.
 
 ```php
 KpiBuilder::query('users:blocked:count')
@@ -127,8 +127,8 @@ Kpi::query()
     ->perDay()
     ->get()
     ->fillGaps( // optional parameters
-        start: now(),
-        end: now()->subWeek(),
+        start: now()->subWeek(),
+        end: now(),
         interval: 'day',
         default: ['number_value' => 0]
     );
@@ -137,7 +137,7 @@ Kpi::query()
     ->where('key', 'users:blocked:count')
     ->perDay()
     ->get()
-    ->fillGaps(); // if you specify nothing when using KpiCollection: start, end and interval value will be guessed from you dataset
+    ->fillGaps(); // if you do not specify anything when using KpiCollection, the start, end and  the interval values will be guessed from you dataset
 ```
 
 ## Testing
