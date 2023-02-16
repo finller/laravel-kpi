@@ -12,10 +12,10 @@ use Finller\Kpi\Support\KpiCollection;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\ArrayObject;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
  * @property string $key
@@ -110,7 +110,7 @@ class Kpi extends Model
         return match ($driver) {
             'mysql' => new MySqlAdapter(),
             'sqlite' => new SqliteAdapter(),
-                // 'pgsql' => new PgsqlAdapter(),
+            // 'pgsql' => new PgsqlAdapter(),
             default => throw new Error("Unsupported database driver : {$driver}."),
         };
     }
