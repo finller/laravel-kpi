@@ -104,6 +104,7 @@ class KpiBuilder
     public function latest(): static
     {
         $this->builder->latest('created_at');
+
         return $this;
     }
 

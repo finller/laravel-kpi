@@ -34,8 +34,8 @@ it('can query kpis by key', function ($interval) {
 
     $period = CarbonPeriod::between($startData, $endData)->interval("1 {$interval}");
 
-    expect(KpiBuilder::query($key_1)->between($startData,$endData)->count())->toBe($period->count());
-    expect(KpiBuilder::query($key_2)->between($startData,$endData)->count())->toBe($period->count());
+    expect(KpiBuilder::query($key_1)->between($startData, $endData)->count())->toBe($period->count());
+    expect(KpiBuilder::query($key_2)->between($startData, $endData)->count())->toBe($period->count());
 })->with($supportedIntervals);
 
 it('can query kpis on a specific period', function ($interval) {
