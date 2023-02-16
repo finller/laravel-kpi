@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 class SqliteAdapter extends AbstractAdapter
 {
-    public function groupBy(string $column, string $interval): \Illuminate\Contracts\Database\Query\Expression
+    public function groupBy(string $column, string $interval)
     {
         return match ($interval) {
             'day' => DB::raw("strftime('%Y-%m-%d', {$column})"),

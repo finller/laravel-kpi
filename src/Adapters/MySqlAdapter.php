@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 class MySqlAdapter extends AbstractAdapter
 {
-    public function groupBy(string $column, string $interval): \Illuminate\Contracts\Database\Query\Expression
+    public function groupBy(string $column, string $interval)
     {
         return match ($interval) {
             'day' => DB::raw("DAY({$column}), MONTH({$column}), YEAR({$column})"),

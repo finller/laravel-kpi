@@ -4,5 +4,6 @@ namespace Finller\Kpi\Adapters;
 
 abstract class AbstractAdapter
 {
-    abstract public function groupBy(string $column, string $interval): \Illuminate\Contracts\Database\Query\Expression;
+    // Add return type when dropping Laravel 9.0
+    abstract public function groupBy(string $column, string $interval);
 }
