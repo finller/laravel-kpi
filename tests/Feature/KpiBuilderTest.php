@@ -7,6 +7,37 @@ use Finller\Kpi\Support\KpiCollection;
 
 $supportedIntervals = ['day', 'week', 'month', 'year'];
 
+it('can query kpis by key', function ($interval) {
+    $key_1 = "test:KpiBuilder:queryKpiBykey:{$interval}:1";
+    $key_2 = "test:KpiBuilder:queryKpiBykey:{$interval}:2";
+
+    $intervalLength = 10;
+
+    $startData = now()->startOfDay()->sub($interval, $intervalLength);
+    $endData = now()->startOfDay();
+
+    Kpi::factory([
+        'key' => $key_1,
+    ])->number()->between(
+        $startData,
+        $endData,
+        $interval
+    )->create();
+
+    Kpi::factory([
+        'key' => $key_2,
+    ])->number()->between(
+        $startData,
+        $endData,
+        $interval
+    )->create();
+
+    $period = CarbonPeriod::between($startData, $endData)->interval("1 {$interval}");
+
+    expect(KpiBuilder::query($key_1)->between($startData,$endData)->count())->toBe($period->count());
+    expect(KpiBuilder::query($key_2)->between($startData,$endData)->count())->toBe($period->count());
+})->with($supportedIntervals);
+
 it('can query kpis on a specific period', function ($interval) {
     $key = "test:KpiBuilder:queryOnPeriod:{$interval}";
 

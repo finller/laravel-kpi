@@ -30,7 +30,7 @@ class KpiBuilder
         }
 
         if (is_string($builder)) {
-            new self(Kpi::query()->where('key', $builder));
+            return new self(Kpi::query()->where('key', $builder));
         }
 
         return new self(Kpi::query());
@@ -93,12 +93,28 @@ class KpiBuilder
             ->when($this->end, fn ($q) => $q->where('kpis.created_at', '<=', $this->end));
     }
 
-    public function fillGaps(?array $defaultGapValue = null)
+    public function fillGaps(?array $defaultGapValue = null): static
     {
         $this->fillGaps = true;
         $this->defaultGapValue = $defaultGapValue;
 
         return $this;
+    }
+
+    public function latest(): static
+    {
+        $this->builder->latest('created_at');
+        return $this;
+    }
+
+    public function oldest(): static
+    {
+        return $this->latest();
+    }
+
+    public function count(): int
+    {
+        return $this->getQuery()->count();
     }
 
     public function get(): KpiCollection

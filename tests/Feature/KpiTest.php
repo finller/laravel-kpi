@@ -57,6 +57,37 @@ it('can seed kpis on interval', function ($interval) {
     expect(Kpi::query()->where('key', $key)->count())->toBe($period->count());
 })->with($supportedIntervals);
 
+it('can query kpis by key', function ($interval) {
+    $key_1 = "test:queryKpiBykey:{$interval}:1";
+    $key_2 = "test:queryKpiBykey:{$interval}:2";
+
+    $intervalLength = 10;
+
+    $startData = now()->startOfDay()->sub($interval, $intervalLength);
+    $endData = now()->startOfDay();
+
+    Kpi::factory([
+        'key' => $key_1,
+    ])->number()->between(
+        $startData,
+        $endData,
+        $interval
+    )->create();
+
+    Kpi::factory([
+        'key' => $key_2,
+    ])->number()->between(
+        $startData,
+        $endData,
+        $interval
+    )->create();
+
+    $period = CarbonPeriod::between($startData, $endData)->interval("1 {$interval}");
+
+    expect(Kpi::query()->where('key', $key_1)->count())->toBe($period->count());
+    expect(Kpi::query()->where('key', $key_2)->count())->toBe($period->count());
+})->with($supportedIntervals);
+
 it('can query kpis on a specific period', function ($interval) {
     $key = "test:queryOnPeriod:{$interval}";
 
