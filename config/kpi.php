@@ -1,6 +1,7 @@
 <?php
 
 // config for Finller/Kpi
-return [
 
+return [
+    "kpi_model" => \Finller\Kpi\Kpi::class,
 ];

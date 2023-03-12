@@ -25,15 +25,17 @@ class KpiBuilder
 
     public static function query(null|string|Builder $builder = null): self
     {
+        $model = config('kpi.kpi_model');
+
         if ($builder instanceof Builder) {
             return new self($builder);
         }
 
         if (is_string($builder)) {
-            return new self(Kpi::query()->where('key', $builder));
+            return new self($model::query()->where('key', $builder));
         }
 
-        return new self(Kpi::query());
+        return new self($model::query());
     }
 
     public function between(?Carbon $start = null, ?Carbon $end = null): static

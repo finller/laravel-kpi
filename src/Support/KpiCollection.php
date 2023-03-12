@@ -12,6 +12,8 @@ class KpiCollection extends Collection
 {
     public function fillGaps(?Carbon $start = null, ?Carbon $end = null, ?string $interval = null, ?array $default = null): static
     {
+        $model = config("kpi.kpi_model");
+
         $collection = new static($this->sortBy('created_at')->all());  // @phpstan-ignore-line
 
         if (! $interval && ($this->count() < 2)) {
@@ -44,7 +46,7 @@ class KpiCollection extends Collection
             if (! $item?->created_at->isSameAs($dateFormatComparator, $date)) {
                 $placeholderItem = $collection->get($indexItem - 1) ?? $item ?? $collection->last();
 
-                $placeholder = new Kpi();
+                $placeholder = new $model();
                 $placeholder->fill(Arr::only($default ?? $placeholderItem?->attributesToArray() ?? [], $placeholder->getFillable()));
                 $placeholder->created_at = $date->clone();
                 $placeholder->updated_at = $date->clone();

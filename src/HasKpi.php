@@ -18,9 +18,11 @@ trait HasKpi
         return KpiBuilder::query("{$namespace}:{$key}");
     }
 
-    public static function snapshotKpiCount(): Kpi
+    public static function snapshotKpiCount()
     {
-        return Kpi::create([
+        $model = config('kpi.kpi_model');
+
+        return $model::create([
             'key' => static::getKpiNamespace().':count',
             'number_value' => static::count(),
         ]);
