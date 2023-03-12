@@ -3,5 +3,5 @@
 // config for Finller/Kpi
 
 return [
-    "kpi_model" => \Finller\Kpi\Kpi::class,
+    'kpi_model' => \Finller\Kpi\Kpi::class,
 ];
