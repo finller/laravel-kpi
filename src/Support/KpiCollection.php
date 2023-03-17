@@ -106,7 +106,7 @@ class KpiCollection extends Collection
      *
      * @param  callable(Kpi, null|Kpi): Kpi  $callback
      */
-    public function combineWith(?KpiCollection $kpiCollection, callable $callback): self
+    public function combineWith(KpiCollection $kpiCollection, callable $callback): self
     {
         return new KpiCollection($this->map(function (Kpi $kpi, $index) use ($kpiCollection, $callback) {
             return $callback($kpi, $kpiCollection->get($index));
