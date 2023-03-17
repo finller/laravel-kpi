@@ -15,7 +15,7 @@ class KpiFactory extends Factory
     public function definition()
     {
         return [
-            'key' => fake()->randomElement(['users', 'messages', 'pages']) . ':' . fake()->randomElement(['count', 'max', 'min']),
+            'key' => fake()->randomElement(['users', 'messages', 'pages']).':'.fake()->randomElement(['count', 'max', 'min']),
         ];
     }
 

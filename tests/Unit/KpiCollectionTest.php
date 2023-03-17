@@ -17,19 +17,18 @@ it('can guess interval between items', function (KpiInterval $interval) {
     expect($collection->guessInterval())->toBe($interval);
 })->with($supportedIntervals);
 
-
 it('can combine two KpiCollections', function (KpiInterval $interval) {
-    $now  = now();
+    $now = now();
 
     $collection1 = new KpiCollection(
         Kpi::factory(2)->sequence(
             [
                 'created_at' => $now->clone(),
-                'number_value' => 1.0
+                'number_value' => 1.0,
             ],
             [
                 'created_at' => $now->clone()->add($interval->value, 1),
-                'number_value' => 2.0
+                'number_value' => 2.0,
             ],
         )->make()
     );
@@ -38,28 +37,28 @@ it('can combine two KpiCollections', function (KpiInterval $interval) {
         Kpi::factory(2)->sequence(
             [
                 'created_at' => $now->clone(),
-                'number_value' => 0.0
+                'number_value' => 0.0,
             ],
             [
                 'created_at' => $now->clone(),
-                'number_value' => 10.0
+                'number_value' => 10.0,
             ],
             [
                 'created_at' => $now->clone()->add($interval->value, 1),
-                'number_value' => 20.0
+                'number_value' => 20.0,
             ],
         )->make()
     );
 
     $combinedCollection = $collection1
         ->combineWith($collection2, function (Kpi $kpi1, ?Kpi $kpi2) {
-            if (!$kpi2) {
+            if (! $kpi2) {
                 return $kpi1;
             }
 
             return new Kpi([
                 ...$kpi1->toArray(),
-                'number_value' => $kpi1->number_value + floatval($kpi2->number_value)
+                'number_value' => $kpi1->number_value + floatval($kpi2->number_value),
             ]);
         });
 
