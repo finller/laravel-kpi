@@ -4,10 +4,10 @@ namespace Finller\Kpi\Enums;
 
 enum KpiInterval: string
 {
-    case Day = "day";
-    case Week = "week";
-    case Month = "month";
-    case Year = "year";
+    case Day = 'day';
+    case Week = 'week';
+    case Month = 'month';
+    case Year = 'year';
 
     public function dateFormatComparator()
     {
