@@ -1,19 +1,20 @@
 <?php
 
 use Carbon\CarbonPeriod;
+use Finller\Kpi\Enums\KpiInterval;
 use Finller\Kpi\Kpi;
 use Finller\Kpi\KpiBuilder;
 use Finller\Kpi\Support\KpiCollection;
 
-$supportedIntervals = ['day', 'week', 'month', 'year'];
+$supportedIntervals = KpiInterval::cases();
 
-it('can query kpis by key', function ($interval) {
-    $key_1 = "test:KpiBuilder:queryKpiBykey:{$interval}:1";
-    $key_2 = "test:KpiBuilder:queryKpiBykey:{$interval}:2";
+it('can query kpis by key', function (KpiInterval $interval) {
+    $key_1 = "test:KpiBuilder:queryKpiBykey:{$interval->value}:1";
+    $key_2 = "test:KpiBuilder:queryKpiBykey:{$interval->value}:2";
 
     $intervalLength = 10;
 
-    $startData = now()->startOfDay()->sub($interval, $intervalLength);
+    $startData = now()->startOfDay()->sub($interval->value, $intervalLength);
     $endData = now()->startOfDay();
 
     Kpi::factory([
@@ -32,29 +33,32 @@ it('can query kpis by key', function ($interval) {
         $interval
     )->create();
 
-    $period = CarbonPeriod::between($startData, $endData)->interval("1 {$interval}");
+    $period = CarbonPeriod::between($startData, $endData)->interval("1 {$interval->value}");
 
     expect(KpiBuilder::query($key_1)->between($startData, $endData)->count())->toBe($period->count());
     expect(KpiBuilder::query($key_2)->between($startData, $endData)->count())->toBe($period->count());
 })->with($supportedIntervals);
 
-it('can query kpis on a specific period', function ($interval) {
-    $key = "test:KpiBuilder:queryOnPeriod:{$interval}";
+it('can query kpis on a specific period', function (KpiInterval $interval) {
+    $key = "test:KpiBuilder:queryOnPeriod:{$interval->value}";
 
     $intervalLength = 5;
 
     // create larger data window than queried window
-    $startData = now()->startOfDay()->sub($interval, $intervalLength + 2);
-    $endData = now()->startOfDay()->add($interval, $intervalLength + 2);
+    $startData = now()->startOfDay()->sub($interval->value, $intervalLength + 2);
+    $endData = now()->startOfDay()->add($interval->value, $intervalLength + 2);
 
     $kpis = Kpi::factory([
         'key' => $key,
-    ])->number()->between($startData, $endData, $interval)->create();
+    ])
+        ->number()
+        ->between($startData, $endData, $interval)
+        ->create();
 
-    $startQuery = now()->startOfDay()->sub($interval, $intervalLength);
+    $startQuery = now()->startOfDay()->sub($interval->value, $intervalLength);
     $endQuery = now()->startOfDay();
 
-    $periodQueried = CarbonPeriod::between($startQuery, $endQuery)->interval("1 {$interval}");
+    $periodQueried = CarbonPeriod::between($startQuery, $endQuery)->interval("1 {$interval->value}");
 
     $kpisOnInterval = KpiBuilder::query(
         Kpi::query()->where('key', $key)
@@ -73,9 +77,9 @@ it('can query kpis on a specific period', function ($interval) {
     expect($lastKpi?->created_at->isSameDay($endQuery));
 })->with($supportedIntervals);
 
-it('can query kpis with gaps filled on period', function ($interval) {
-    $key = "test:KpiBuilder:fillGaps:{$interval}";
-    $start = now()->startOfDay()->sub($interval, 10);
+it('can query kpis with gaps filled on period', function (KpiInterval $interval) {
+    $key = "test:KpiBuilder:fillGaps:{$interval->value}";
+    $start = now()->startOfDay()->sub($interval->value, 10);
     $end = now()->startOfDay();
 
     /** @var KpiCollection $kpis */
@@ -87,7 +91,7 @@ it('can query kpis with gaps filled on period', function ($interval) {
         $interval
     )->create();
 
-    $period = CarbonPeriod::between($start, $end)->interval("1 {$interval}");
+    $period = CarbonPeriod::between($start, $end)->interval("1 {$interval->value}");
     $expectedKpisCount = $period->count();
 
     expect($kpis)->toHaveCount($expectedKpisCount);

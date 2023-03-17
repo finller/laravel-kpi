@@ -4,19 +4,20 @@ namespace Finller\Kpi\Support;
 
 use Carbon\Carbon;
 use Exception;
+use Finller\Kpi\Enums\KpiInterval;
 use Finller\Kpi\Kpi;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
 
 class KpiCollection extends Collection
 {
-    public function fillGaps(?Carbon $start = null, ?Carbon $end = null, ?string $interval = null, ?array $default = null): static
+    public function fillGaps(?Carbon $start = null, ?Carbon $end = null, ?KpiInterval $interval = null, ?array $default = null): static
     {
         $model = config("kpi.kpi_model");
 
         $collection = new static($this->sortBy('created_at')->all());  // @phpstan-ignore-line
 
-        if (! $interval && ($this->count() < 2)) {
+        if (!$interval && ($this->count() < 2)) {
             throw new Exception("interval between items can't be guessed from a single element, provid the interval parameter.");
         }
 
@@ -31,19 +32,19 @@ class KpiCollection extends Collection
 
         $interval = $interval ?? $this->guessInterval();
 
-        if (! $start || ! $end || ! $interval) {
+        if (!$start || !$end || !$interval) {
             return $collection;
         }
 
         $date = $start->clone();
         $indexItem = 0;
-        $dateFormatComparator = static::getFormatDateComparator($interval);
+        $dateFormatComparator = $interval->dateFormatComparator();
 
         while ($date->lessThanOrEqualTo($end)) {
             /** @var ?Kpi $item */
             $item = $collection->get($indexItem);
 
-            if (! $item?->created_at->isSameAs($dateFormatComparator, $date)) {
+            if (!$item?->created_at->isSameAs($dateFormatComparator, $date)) {
                 $placeholderItem = $collection->get($indexItem - 1) ?? $item ?? $collection->last();
 
                 $placeholder = new $model();
@@ -59,45 +60,34 @@ class KpiCollection extends Collection
             }
 
             $indexItem++;
-            $date->add($interval, 1);
+            $date->add($interval->value, 1);
         }
 
         return $collection;
     }
 
-    public static function getFormatDateComparator(string $interval): ?string
-    {
-        return match ($interval) {
-            'day' => 'Y-m-d',
-            'week' => 'Y-W',
-            'month' => 'Y-m',
-            'year' => 'Y',
-            default => null
-        };
-    }
-
-    public static function getIntervalFromDates(Carbon $before, Carbon $after): ?string
+    public static function getIntervalFromDates(Carbon $before, Carbon $after): ?KpiInterval
     {
         if ($after->isSameDay($before->clone()->addDay())) {
-            return 'day';
+            return KpiInterval::Day;
         }
 
         if ($after->isSameDay($before->clone()->addWeek())) {
-            return 'week';
+            return KpiInterval::Week;
         }
 
         if ($after->isSameDay($before->clone()->addMonth())) {
-            return 'month';
+            return KpiInterval::Month;
         }
 
         if ($after->isSameDay($before->clone()->addYear())) {
-            return 'year';
+            return KpiInterval::Year;
         }
 
         return null;
     }
 
-    public function guessInterval(): ?string
+    public function guessInterval(): ?KpiInterval
     {
         if ($this->count() < 2) {
             return null;
@@ -109,5 +99,16 @@ class KpiCollection extends Collection
         $secondItem = $this->get(1);
 
         return static::getIntervalFromDates($firstItem->created_at, $secondItem->created_at);
+    }
+
+    /**
+     * Combine the collection with another one based on keys
+     * @param  callable(Kpi, null|Kpi): Kpi  $callback
+     */
+    public function combineWith(?KpiCollection $kpiCollection = null, callable $callback): self
+    {
+        return new KpiCollection($this->map(function (Kpi $kpi, $index) use ($kpiCollection, $callback) {
+            return $callback($kpi, $kpiCollection->get($index));
+        }));
     }
 }

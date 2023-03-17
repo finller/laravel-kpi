@@ -4,6 +4,7 @@ namespace Finller\Kpi\Database\Factories;
 
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
+use Finller\Kpi\Enums\KpiInterval;
 use Finller\Kpi\Kpi;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -14,7 +15,7 @@ class KpiFactory extends Factory
     public function definition()
     {
         return [
-            'key' => fake()->randomElement(['users', 'messages', 'pages']).':'.fake()->randomElement(['count', 'max', 'min']),
+            'key' => fake()->randomElement(['users', 'messages', 'pages']) . ':' . fake()->randomElement(['count', 'max', 'min']),
         ];
     }
 
@@ -67,10 +68,10 @@ class KpiFactory extends Factory
         });
     }
 
-    public function between(Carbon $start, Carbon $end, string $interval = 'day', ?array $properties = [])
+    public function between(Carbon $start, Carbon $end, KpiInterval $interval = KpiInterval::Day, ?array $properties = [])
     {
         $period = CarbonPeriod::between($start, $end)
-            ->interval("1 {$interval}")
+            ->interval("1 {$interval->value}")
             ->toArray();
 
         return $this

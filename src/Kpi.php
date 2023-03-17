@@ -8,6 +8,7 @@ use Finller\Kpi\Adapters\AbstractAdapter;
 use Finller\Kpi\Adapters\MySqlAdapter;
 use Finller\Kpi\Adapters\SqliteAdapter;
 use Finller\Kpi\Database\Factories\KpiFactory;
+use Finller\Kpi\Enums\KpiInterval;
 use Finller\Kpi\Support\KpiCollection;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\ArrayObject;
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * @property string $key
+ * @property ?string $description
  * @property ?string $string_value
  * @property ?float $number_value
  * @property ?array $json_value
@@ -36,10 +38,13 @@ class Kpi extends Model
         'key',
         'string_value',
         'number_value',
-        'json_value',
         'money_value',
         'money_currency',
+        'json_value',
+        'description',
         'metadata',
+        'created_at',
+        'updated_at',
     ];
 
     protected $casts = [
@@ -65,7 +70,7 @@ class Kpi extends Model
         return $query->where('kpis.created_at', '<=', $date);
     }
 
-    public function scopePerInterval(Builder $query, string $interval)
+    public function scopePerInterval(Builder $query, KpiInterval $interval)
     {
         // find what key is searched for
         $key = collect($query->getQuery()->wheres)
@@ -79,28 +84,28 @@ class Kpi extends Model
                 ->from($query->getQuery()->from)
                 ->when($key, fn ($b) => $b->where('kpis.key', $key))
                 ->select(DB::raw('max(kpis.id) as id'))
-                ->groupBy($this->getSqlDateAdapter($query)->groupBy('kpis.created_at', $interval));
+                ->groupBy($this->getSqlDateAdapter($query)->groupBy('kpis.created_at', $interval->value));
         });
     }
 
     public function scopePerDay(Builder $query)
     {
-        return $query->perInterval('day'); // @phpstan-ignore-line
+        return $query->perInterval(KpiInterval::Day); // @phpstan-ignore-line
     }
 
     public function scopePerWeek(Builder $query)
     {
-        return $query->perInterval('week'); // @phpstan-ignore-line
+        return $query->perInterval(KpiInterval::Week); // @phpstan-ignore-line
     }
 
     public function scopePerMonth(Builder $query)
     {
-        return $query->perInterval('month'); // @phpstan-ignore-line
+        return $query->perInterval(KpiInterval::Month); // @phpstan-ignore-line
     }
 
     public function scopePerYear(Builder $query)
     {
-        return $query->perInterval('year'); // @phpstan-ignore-line
+        return $query->perInterval(KpiInterval::Year); // @phpstan-ignore-line
     }
 
     protected function getSqlDateAdapter(Builder $builder): AbstractAdapter
@@ -110,7 +115,7 @@ class Kpi extends Model
         return match ($driver) {
             'mysql' => new MySqlAdapter(),
             'sqlite' => new SqliteAdapter(),
-            // 'pgsql' => new PgsqlAdapter(),
+                // 'pgsql' => new PgsqlAdapter(),
             default => throw new Error("Unsupported database driver : {$driver}."),
         };
     }

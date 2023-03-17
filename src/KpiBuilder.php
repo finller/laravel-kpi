@@ -3,12 +3,13 @@
 namespace Finller\Kpi;
 
 use Carbon\Carbon;
+use Finller\Kpi\Enums\KpiInterval;
 use Finller\Kpi\Support\KpiCollection;
 use Illuminate\Database\Eloquent\Builder;
 
 class KpiBuilder
 {
-    public ?string $interval = null;
+    public ?KpiInterval $interval = null;
 
     public ?Carbon $start = null;
 
@@ -60,7 +61,7 @@ class KpiBuilder
         return $this;
     }
 
-    public function perInterval(string $interval): static
+    public function perInterval(KpiInterval $interval): static
     {
         $this->interval = $interval;
 
@@ -69,22 +70,22 @@ class KpiBuilder
 
     public function perDay(): static
     {
-        return $this->perInterval('day');
+        return $this->perInterval(KpiInterval::Day);
     }
 
     public function perWeek(): static
     {
-        return $this->perInterval('week');
+        return $this->perInterval(KpiInterval::Week);
     }
 
     public function perMonth(): static
     {
-        return $this->perInterval('month');
+        return $this->perInterval(KpiInterval::Month);
     }
 
     public function perYear(): static
     {
-        return $this->perInterval('year');
+        return $this->perInterval(KpiInterval::Year);
     }
 
     public function getQuery(): Builder
