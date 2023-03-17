@@ -126,7 +126,6 @@ it('can query kpis as relative on period', function (KpiInterval $interval) {
         $interval
     )->create();
 
-
     $kpis = KpiBuilder::query(
         Kpi::query()->where('key', $key)
     )

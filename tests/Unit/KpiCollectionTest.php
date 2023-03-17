@@ -52,7 +52,7 @@ it('can combine two KpiCollections', function (KpiInterval $interval) {
 
     $combinedCollection = $collection1
         ->combineWith($collection2, function (Kpi $kpi1, ?Kpi $kpi2) {
-            if (!$kpi2) {
+            if (! $kpi2) {
                 return $kpi1;
             }
 
@@ -66,25 +66,24 @@ it('can combine two KpiCollections', function (KpiInterval $interval) {
     expect($combinedCollection->get(1)?->number_value)->toBe(12.0);
 })->with($supportedIntervals);
 
-
 it('can convert to a relative collection', function (KpiInterval $interval) {
     $collection = new KpiCollection(
         Kpi::factory(4)->sequence(
             [
                 'created_at' => now(),
-                'number_value' => 0
+                'number_value' => 0,
             ],
             [
                 'created_at' => now()->add($interval->value, 1),
-                'number_value' => 10
+                'number_value' => 10,
             ],
             [
                 'created_at' => now()->add($interval->value, 2),
-                'number_value' => 100
+                'number_value' => 100,
             ],
             [
                 'created_at' => now()->add($interval->value, 3),
-                'number_value' => 150
+                'number_value' => 150,
             ],
         )->make()
     );
@@ -95,5 +94,4 @@ it('can convert to a relative collection', function (KpiInterval $interval) {
     expect($relativeCollection->get(0)?->number_value)->toBe(10.0);
     expect($relativeCollection->get(1)?->number_value)->toBe(90.0);
     expect($relativeCollection->get(2)?->number_value)->toBe(50.0);
-
 })->with($supportedIntervals);
