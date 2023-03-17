@@ -17,6 +17,11 @@ class KpiBuilder
 
     public bool $fillGaps = false;
 
+    /**
+     * If true, value will not be not be cumulated
+     */
+    public bool $relative = false;
+
     public ?array $defaultGapValue = null;
 
     public function __construct(public Builder $builder)
@@ -37,6 +42,12 @@ class KpiBuilder
         }
 
         return new self($model::query());
+    }
+
+    public function relative($value = true): static
+    {
+        $this->relative = true;
+        return $this;
     }
 
     public function between(?Carbon $start = null, ?Carbon $end = null): static
@@ -90,9 +101,15 @@ class KpiBuilder
 
     public function getQuery(): Builder
     {
+        $start = $this->start;
+
+        if ($this->start && $this->relative && $this->interval) {
+            $start = $this->start->sub($this->interval->value, 1);
+        }
+
         return $this->builder
             ->when($this->interval, fn ($q) => $q->perInterval($this->interval)) // @phpstan-ignore-line
-            ->when($this->start, fn ($q) => $q->where('kpis.created_at', '>=', $this->start))
+            ->when($start, fn ($q) => $q->where('kpis.created_at', '>=', $start))
             ->when($this->end, fn ($q) => $q->where('kpis.created_at', '<=', $this->end));
     }
 
@@ -126,13 +143,19 @@ class KpiBuilder
         /** @var KpiCollection */
         $kpis = $this->getQuery()->get();
 
-        return $this->fillGaps ?
-            $kpis->fillGaps(
+        if ($this->relative) {
+            $kpis = $kpis->toRelative();
+        }
+
+        if ($this->fillGaps) {
+            $kpis = $kpis->fillGaps(
                 start: $this->start,
                 end: $this->end,
                 interval: $this->interval,
                 default: $this->defaultGapValue
-            ) :
-            $kpis;
+            );
+        }
+
+        return $kpis;
     }
 }

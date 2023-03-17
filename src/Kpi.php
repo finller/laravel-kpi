@@ -115,7 +115,7 @@ class Kpi extends Model
         return match ($driver) {
             'mysql' => new MySqlAdapter(),
             'sqlite' => new SqliteAdapter(),
-            // 'pgsql' => new PgsqlAdapter(),
+                // 'pgsql' => new PgsqlAdapter(),
             default => throw new Error("Unsupported database driver : {$driver}."),
         };
     }
@@ -128,5 +128,32 @@ class Kpi extends Model
     protected static function newFactory(): Factory
     {
         return KpiFactory::new();
+    }
+
+    public function compareWith(Kpi $kpi, ?string $type = "number_value", bool $relative = false): ?float
+    {
+        return match ($type) {
+            "number_value" => $this->compareWithNumberValue($kpi->number_value, $relative),
+            "money_value" => $this->compareWithMoneyValue($kpi->money_value, $relative),
+            default => null,
+        };
+    }
+
+    protected function compareWithNumberValue(float|int|null $value, bool $relative = false): ?float
+    {
+        if (!$this->number_value || !$value) {
+            return null;
+        }
+
+        if ($relative) {
+            return ($this->number_value - $value) / $this->number_value;
+        }
+
+        return $this->number_value - $value;
+    }
+
+    protected function compareWithMoneyValue(mixed $value, bool $relative = false): ?float
+    {
+        return $this->compareWithNumberValue($value, $relative);
     }
 }

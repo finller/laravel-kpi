@@ -109,3 +109,37 @@ it('can query kpis with gaps filled on period', function (KpiInterval $interval)
 
     expect($remainingKpisWithGapsFilled)->toHaveCount($expectedKpisCount);
 })->with($supportedIntervals);
+
+it('can query kpis as relative on period', function (KpiInterval $interval) {
+    $key = "test:KpiBuilder:toRelative:{$interval->value}";
+    $start = now()->startOfDay()->sub($interval->value, 10);
+    $end = now()->startOfDay();
+
+    $period = CarbonPeriod::between($start, $end)->interval("1 {$interval->value}");
+
+    /** @var KpiCollection $kpis */
+    $seededKpis = Kpi::factory([
+        'key' => $key,
+    ])->number()->between(
+        $start->sub($interval->value, 1),
+        $end,
+        $interval
+    )->create();
+
+
+    $kpis = KpiBuilder::query(
+        Kpi::query()->where('key', $key)
+    )
+        ->between($start, $end)
+        ->perInterval($interval)
+        ->relative()
+        ->get();
+
+    expect($kpis)->toHaveCount($period->count());
+
+    expect($kpis->get(0)->number_value)
+        ->toBe($seededKpis->get(1)->number_value - $seededKpis->get(0)->number_value);
+
+    expect($kpis->last()->number_value)
+        ->toBe($seededKpis->last()->number_value - $seededKpis->get($seededKpis->count() - 2)->number_value);
+})->with($supportedIntervals);
