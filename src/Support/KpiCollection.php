@@ -13,7 +13,7 @@ class KpiCollection extends Collection
 {
     public function fillGaps(?Carbon $start = null, ?Carbon $end = null, ?KpiInterval $interval = null, ?array $default = null): static
     {
-        $model = config("kpi.kpi_model");
+        $model = config('kpi.kpi_model');
 
         $collection = new static($this->sortBy('created_at')->all());  // @phpstan-ignore-line
 
