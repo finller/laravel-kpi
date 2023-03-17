@@ -31,11 +31,11 @@ php artisan migrate
 ## Usage
 
 This package is **not a query builder**, it's based on a kpi table where you will store all your kpis.
-With this approach, your kpis from the past (like the number of users you had a year ago) will not be altered if you permanently delete a model. And retreiving kpis will be much more efficient when asking for cumputed value that often require join like "users who have purchased last week" for example.
+With this approach, your kpis from the past (like the number of users you had a year ago) will not be altered if you permanently delete a model. And retreiving kpis will be much more efficient when asking for computed values that often require join like "users who have purchased last week" for example.
 
 ### Step 1: Store kpis in you database
 
-As said above, you will have to store the kpis you need in database. Kpis are grouped by `keys` and support different kind of values:
+As said above, you will have to store the kpis you need in the database. Kpis are grouped by `keys` and support different kind of values:
 
 -   number (float) under `number_value` column
 -   string under `string_value` column
@@ -53,7 +53,7 @@ Kpi::create([
 
 Generally kpis are related to models, that's why we provid a trait `HasKpi` with a standardized way to name your kpi key `{namespace}:{key}`. For the User model, it would store your key in the `users` namespace like `users:{key}`.
 
-A standard way to save your kpi values would be in a command that runs every day for example.
+A standard way to save your kpi values would be in a command that runs every day.
 
 You are free to store as much kpis as needed, even multiple times in a day, so you got more recent data.
 
@@ -93,7 +93,7 @@ User::kpi('count')
 
 As we are grouping by date/period, you could have more than 1 snapshot of the same key for a date/period. In this situation, this package will give you only the most recent snaphot of each date/period.
 
-In the previous example, I would get the most recent count of users of each day. This is also true for other kind of supported intervals.
+In the previous example, I would get the most recent count of users for each day. This is also true for other kind of supported intervals.
 
 #### Supported intervals:
 
@@ -113,7 +113,7 @@ In some cases, you could have missed a snapshot. Let's say that your snapshot kp
 To fill the gaps let by missing values, you can use the `fillGaps` method available on `KpiBuilder` or  `KpiCollection`.
 By default the placeholders will be a copy of their previous kpi.
 
-For convenience the `KpiBuilder` is the best option as it will give you better typed values and shares parameters between fillGaps and between.
+For convenience the `KpiBuilder` is the best option as it will give you better typed values and shares parameters between `fillGaps` and `between`.
 
 ```php
 KpiBuilder::query('users:blocked:count')
@@ -124,6 +124,7 @@ KpiBuilder::query('users:blocked:count')
 
 Kpi::query()
     ->where('key', 'users:blocked:count')
+    ->between(now()->subWeek(), now())
     ->perDay()
     ->get()
     ->fillGaps( // optional parameters
@@ -135,9 +136,10 @@ Kpi::query()
 
 Kpi::query()
     ->where('key', 'users:blocked:count')
+    ->between(now()->subWeek(), now())
     ->perDay()
     ->get()
-    ->fillGaps(); // if you do not specify anything when using KpiCollection, the start, end and  the interval values will be guessed from you dataset
+    ->fillGaps(); // if you do not specify anything when using KpiCollection, the start, end and the interval values will be guessed from your dataset
 ```
 
 ## Testing
