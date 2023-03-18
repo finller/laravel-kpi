@@ -121,11 +121,12 @@ class KpiCollection extends Collection
                 $previousKpi = $this->get($index - 1);
 
                 return new Kpi([
+                    'created_at' => $kpi->created_at,
                     'number_value' => $this->toRelativeNumberValue($kpi->number_value, $previousKpi?->number_value),
                     'money_value' => $this->toRelativeMoneyValue($kpi->money_value, $previousKpi?->money_value),
                     'string_value' => $this->toRelativeStringValue($kpi->string_value, $previousKpi?->string_value),
                 ]);
-            })->skip(1)->values() // The very first value can not be converted to a relative value
+            })->values() // The very first value can not be converted to a relative value
         );
     }
 
