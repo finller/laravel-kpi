@@ -9,7 +9,6 @@ use Finller\Kpi\Adapters\MySqlAdapter;
 use Finller\Kpi\Adapters\SqliteAdapter;
 use Finller\Kpi\Database\Factories\KpiFactory;
 use Finller\Kpi\Enums\KpiInterval;
-use Finller\Kpi\Support\KpiCollection;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\ArrayObject;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
@@ -120,9 +119,10 @@ class Kpi extends Model
         };
     }
 
-    public function newCollection(array $models = []): KpiCollection
+    public function newCollection(array $models = [])
     {
-        return new KpiCollection($models);
+        $model = config('kpi.kpi_collection_model');
+        return new $model($models);
     }
 
     protected static function newFactory(): Factory

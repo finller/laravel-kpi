@@ -139,13 +139,12 @@ class KpiBuilder
         return $this->getQuery()->count();
     }
 
-    public function get(): KpiCollection
+    public function get()
     {
-        /** @var KpiCollection */
         $kpis = $this->getQuery()->get();
 
         if ($this->relative) {
-            $kpis = $kpis->toRelative();
+            $kpis = $kpis->toRelative()->skip(1)->values();
         }
 
         if ($this->fillGaps) {

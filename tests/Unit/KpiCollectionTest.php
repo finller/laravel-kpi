@@ -90,8 +90,8 @@ it('can convert to a relative collection', function (KpiInterval $interval) {
 
     $relativeCollection = $collection->toRelative();
 
-    expect($relativeCollection)->toHaveCount($collection->count() - 1);
-    expect($relativeCollection->get(0)?->number_value)->toBe(10.0);
-    expect($relativeCollection->get(1)?->number_value)->toBe(90.0);
-    expect($relativeCollection->get(2)?->number_value)->toBe(50.0);
+    expect($relativeCollection->get(0)?->number_value)->toBe(null);
+    expect($relativeCollection->get(1)?->number_value)->toBe(10.0);
+    expect($relativeCollection->get(2)?->number_value)->toBe(90.0);
+    expect($relativeCollection->get(3)?->number_value)->toBe(50.0);
 })->with($supportedIntervals);
