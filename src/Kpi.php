@@ -122,6 +122,7 @@ class Kpi extends Model
     public function newCollection(array $models = [])
     {
         $model = config('kpi.kpi_collection_model');
+
         return new $model($models);
     }
 
