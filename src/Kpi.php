@@ -114,7 +114,7 @@ class Kpi extends Model
         return match ($driver) {
             'mysql' => new MySqlAdapter(),
             'sqlite' => new SqliteAdapter(),
-                // 'pgsql' => new PgsqlAdapter(),
+            // 'pgsql' => new PgsqlAdapter(),
             default => throw new Error("Unsupported database driver : {$driver}."),
         };
     }
@@ -154,7 +154,7 @@ class Kpi extends Model
     }
 
     /**
-     * @param mixed $value
+     * @param  mixed  $value
      */
     protected function toMoneyDifference($value, bool $relative = false): ?float
     {
