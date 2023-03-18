@@ -119,7 +119,7 @@ class KpiCollection extends Collection
     public function toRelative(): static
     {
         /** @var static $collection */
-        $collection =  $this->map(function (Kpi $kpi, $index) {
+        $collection = $this->map(function (Kpi $kpi, $index) {
             /** @var ?Kpi */
             $previousKpi = $this->get($index - 1);
 
