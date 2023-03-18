@@ -142,7 +142,7 @@ class Kpi extends Model
 
     protected function toNumberDifference(float|int|null $value, bool $relative = false): ?float
     {
-        if (!$this->number_value || $value === null) {
+        if (! $this->number_value || $value === null) {
             return null;
         }
 
