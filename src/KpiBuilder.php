@@ -4,7 +4,6 @@ namespace Finller\Kpi;
 
 use Carbon\Carbon;
 use Finller\Kpi\Enums\KpiInterval;
-use Finller\Kpi\Support\KpiCollection;
 use Illuminate\Database\Eloquent\Builder;
 
 class KpiBuilder
