@@ -17,7 +17,7 @@ class KpiCollection extends Collection
 
         $collection = new static($this->sortBy('created_at')->all());  // @phpstan-ignore-line
 
-        if (!$interval && ($this->count() < 2)) {
+        if (! $interval && ($this->count() < 2)) {
             throw new Exception("interval between items can't be guessed from a single element, provid the interval parameter.");
         }
 
@@ -32,7 +32,7 @@ class KpiCollection extends Collection
 
         $interval = $interval ?? $this->guessInterval();
 
-        if (!$start || !$end || !$interval) {
+        if (! $start || ! $end || ! $interval) {
             return $collection;
         }
 
@@ -44,7 +44,7 @@ class KpiCollection extends Collection
             /** @var ?Kpi $item */
             $item = $collection->get($indexItem);
 
-            if (!$item?->created_at->isSameAs($dateFormatComparator, $date)) {
+            if (! $item?->created_at->isSameAs($dateFormatComparator, $date)) {
                 $placeholderItem = $collection->get($indexItem - 1) ?? $item ?? $collection->last();
 
                 $placeholder = new $model();
@@ -141,7 +141,7 @@ class KpiCollection extends Collection
 
     protected function toRelativeMoneyValue(mixed $current, mixed $previous)
     {
-        if (!is_numeric($current) || !is_numeric($previous)) {
+        if (! is_numeric($current) || ! is_numeric($previous)) {
             return null;
         }
 
