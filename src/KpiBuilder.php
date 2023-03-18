@@ -141,6 +141,7 @@ class KpiBuilder
 
     public function get()
     {
+        /** @var KpiCollection */
         $kpis = $this->getQuery()->get();
 
         if ($this->relative) {

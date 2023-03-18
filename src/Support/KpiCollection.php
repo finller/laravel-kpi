@@ -106,50 +106,26 @@ class KpiCollection extends Collection
      *
      * @param  callable(Kpi, null|Kpi): Kpi  $callback
      */
-    public function combineWith(KpiCollection $kpiCollection, callable $callback): self
+    public function combineWith(KpiCollection $kpiCollection, callable $callback): static
     {
-        return new static($this->map(function (Kpi $kpi, $index) use ($kpiCollection, $callback) {
+        /** @var static $collection */
+        $collection = $this->map(function (Kpi $kpi, $index) use ($kpiCollection, $callback) {
             return $callback($kpi, $kpiCollection->get($index));
-        }));
+        });
+
+        return $collection;
     }
 
-    public function toRelative()
+    public function toRelative(): static
     {
-        return new static(
-            $this->map(function (Kpi $kpi, $index) {
-                /** @var ?Kpi */
-                $previousKpi = $this->get($index - 1);
+        /** @var static $collection */
+        $collection =  $this->map(function (Kpi $kpi, $index) {
+            /** @var ?Kpi */
+            $previousKpi = $this->get($index - 1);
 
-                return new Kpi([
-                    'created_at' => $kpi->created_at,
-                    'number_value' => $this->toRelativeNumberValue($kpi->number_value, $previousKpi?->number_value),
-                    'money_value' => $this->toRelativeMoneyValue($kpi->money_value, $previousKpi?->money_value),
-                    'string_value' => $this->toRelativeStringValue($kpi->string_value, $previousKpi?->string_value),
-                ]);
-            })->values() // The very first value can not be converted to a relative value
-        );
-    }
+            return $kpi->toDifference($previousKpi);
+        });
 
-    protected function toRelativeNumberValue(null|float|int|string $current, null|float|int|string $previous): ?float
-    {
-        if ($current === null || $previous === null) {
-            return null;
-        }
-
-        return floatval($current) - floatval($previous);
-    }
-
-    protected function toRelativeMoneyValue($current, $previous)
-    {
-        if (!is_numeric($current) || !is_numeric($previous)) {
-            return null;
-        }
-
-        return $this->toRelativeNumberValue($current, $previous);
-    }
-
-    protected function toRelativeStringValue(?string $current, ?string $previous): ?string
-    {
-        return $current;
+        return $collection;
     }
 }

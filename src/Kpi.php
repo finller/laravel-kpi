@@ -114,7 +114,7 @@ class Kpi extends Model
         return match ($driver) {
             'mysql' => new MySqlAdapter(),
             'sqlite' => new SqliteAdapter(),
-            // 'pgsql' => new PgsqlAdapter(),
+                // 'pgsql' => new PgsqlAdapter(),
             default => throw new Error("Unsupported database driver : {$driver}."),
         };
     }
@@ -130,30 +130,33 @@ class Kpi extends Model
         return KpiFactory::new();
     }
 
-    public function compareWith(Kpi $kpi, ?string $type = 'number_value', bool $relative = false): ?float
+    public function toDifference(?Kpi $kpi, bool $relative = false): static
     {
-        return match ($type) {
-            'number_value' => $this->compareWithNumberValue($kpi->number_value, $relative),
-            'money_value' => $this->compareWithMoneyValue($kpi->money_value, $relative),
-            default => null,
-        };
+        // @phpstan-ignore-next-line
+        return new static([
+            'number_value' => $this->toNumberDifference($kpi?->number_value, $relative),
+            'money_value' => $this->toMoneyDifference($kpi?->money_value, $relative),
+        ]);
     }
 
-    protected function compareWithNumberValue(float|int|null $value, bool $relative = false): ?float
+    protected function toNumberDifference(float|int|null $value, bool $relative = false): ?float
     {
-        if (! $this->number_value || ! $value) {
+        if ($this->number_value === null || $value === null) {
             return null;
         }
 
         if ($relative) {
-            return ($this->number_value - $value) / $this->number_value;
+            return (floatval($this->number_value) - floatval($value)) / floatval($this->number_value);
         }
 
-        return $this->number_value - $value;
+        return floatval($this->number_value) - floatval($value);
     }
 
-    protected function compareWithMoneyValue(mixed $value, bool $relative = false): ?float
+    /**
+     * @param mixed $value
+     */
+    protected function toMoneyDifference($value, bool $relative = false): ?float
     {
-        return $this->compareWithNumberValue($value, $relative);
+        return $this->toNumberDifference($value, $relative);
     }
 }
