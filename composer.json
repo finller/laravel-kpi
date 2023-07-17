@@ -1,22 +1,17 @@
 {
-    "name": "imseaworld/laravel-kpi",
-    "description": "Fork of finller's laravel-kpi package",
+    "name": "finller/laravel-kpi",
+    "description": "This is my package laravel-kpi",
     "keywords": [
         "finller",
         "laravel",
         "laravel-kpi"
     ],
-    "homepage": "https://github.com/imseaworld/laravel-kpi",
+    "homepage": "https://github.com/finller/laravel-kpi",
     "license": "MIT",
     "authors": [
         {
             "name": "Quentin Gabriele",
             "email": "quentin.gabriele@gmail.com",
-            "role": "Developer"
-        },
-        {
-            "name": "Robert Klitsch",
-            "homepage": "https://github.com/ImSeaWorld",
             "role": "Developer"
         }
     ],
