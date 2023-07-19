@@ -116,11 +116,7 @@ By default the placeholders will be a copy of their previous kpi.
 For convenience the `KpiBuilder` is the best option as it will give you better typed values and shares parameters between `fillGaps` and `between`.
 
 ```php
-KpiBuilder::query('users:blocked:count')
-    ->perDay()
-    ->between(now()->subWeek(), now())
-    ->fillGaps()
-    ->get();
+use Finller\Kpi\Enums\KpiInterval;
 
 Kpi::query()
     ->where('key', 'users:blocked:count')
@@ -130,9 +126,15 @@ Kpi::query()
     ->fillGaps( // optional parameters
         start: now()->subWeek(),
         end: now(),
-        interval: 'day',
+        interval: KpiInterval::Day,
         default: ['number_value' => 0]
     );
+    
+KpiBuilder::query('users:blocked:count')
+    ->perDay()
+    ->between(now()->subWeek(), now())
+    ->fillGaps()
+    ->get();
 
 Kpi::query()
     ->where('key', 'users:blocked:count')
