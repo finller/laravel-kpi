@@ -15,8 +15,12 @@ use Illuminate\{
 
 class KpiCollection extends Collection
 {
-    public function fillGaps(?Carbon $start = null, ?Carbon $end = null, ?KpiInterval $interval = null, ?array $default = null, ?callable $callback = null): static
-    {
+    public function fillGaps(
+        ?Carbon $start = null,
+        ?Carbon $end = null,
+        ?KpiInterval $interval = null,
+        ?array $default = null
+    ): static {
         $model = config('kpi.kpi_model');
 
         $collection = new static($this->sortBy('created_at')->all());  // @phpstan-ignore-line
@@ -52,13 +56,7 @@ class KpiCollection extends Collection
                 $placeholderItem = $collection->get($indexItem - 1) ?? $item ?? $collection->last();
 
                 $placeholder = new $model();
-
-                if ($callback !== null) {
-                    $placeholder->fill(call_user_func($callback, $date));
-                } else {
-                    $placeholder->fill(Arr::only($default ?? $placeholderItem?->attributesToArray() ?? [], $placeholder->getFillable()));
-                }
-
+                $placeholder->fill(Arr::only($default ?? $placeholderItem?->attributesToArray() ?? [], $placeholder->getFillable()));
                 $placeholder->created_at = $date->clone();
                 $placeholder->updated_at = $date->clone();
 
