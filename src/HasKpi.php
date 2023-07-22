@@ -2,18 +2,8 @@
 
 namespace Finller\Kpi;
 
-use Carbon\{
-    Carbon,
-    Exceptions\InvalidFormatException
-};
-use Illuminate\{
-    Support\Str,
-    Contracts\Container\BindingResolutionException
-};
-use Psr\Container\{
-    NotFoundExceptionInterface,
-    ContainerExceptionInterface
-};
+use Carbon\Carbon;
+use Illuminate\Support\Str;
 use Finller\Kpi\Enums\KpiInterval;
 
 trait HasKpi
