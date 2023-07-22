@@ -40,59 +40,6 @@ trait HasKpi
         ]);
     }
 
-    /**
-     * @param null|KpiInterval $interval 
-     * @param null|string $column 
-     * @param null|Carbon $start 
-     * @param null|Carbon $end 
-     * @param null|string $key 
-     * @return array 
-     * @throws BindingResolutionException 
-     * @throws NotFoundExceptionInterface 
-     * @throws ContainerExceptionInterface 
-     */
-    public static function backfillKpiCount(
-        ?KpiInterval $interval = KpiInterval::Day,
-        ?string $column = 'created_at',
-        ?Carbon $start = null,
-        ?Carbon $end = null,
-        ?string $key = 'count'
-    ): array {
-        return static::backfillKpi(
-            function ($model, $start, $end, $key, $date) use ($column) {
-                $count = $model->whereBetween($column, [
-                    $start,
-                    Carbon::parse($date['created_at'])->endOfDay(),
-                ])
-                    ->count();
-
-                return [
-                    'key' => $key,
-                    'number_value' => $count,
-                    'created_at' => $date['created_at'],
-                ];
-            },
-            $interval,
-            $column,
-            $start,
-            $end,
-            $key,
-        );
-    }
-
-    /**
-     * @param null|KpiInterval $interval 
-     * @param null|string $column 
-     * @param null|Carbon $start 
-     * @param null|Carbon $end 
-     * @param null|string $key 
-     * @param null|callable $callback 
-     * @return array 
-     * @throws BindingResolutionException 
-     * @throws NotFoundExceptionInterface 
-     * @throws ContainerExceptionInterface 
-     * @throws InvalidFormatException 
-     */
     public static function backfillKpi(
         callable $callback,
         ?KpiInterval $interval = KpiInterval::Day,
@@ -140,5 +87,34 @@ trait HasKpi
         }
         /** @return array */
         return $fillDates;
+    }
+
+    public static function backfillKpiCount(
+        ?KpiInterval $interval = KpiInterval::Day,
+        ?string $column = 'created_at',
+        ?Carbon $start = null,
+        ?Carbon $end = null,
+        ?string $key = 'count'
+    ): array {
+        return static::backfillKpi(
+            function ($model, $start, $end, $key, $date) use ($column) {
+                $count = $model->whereBetween($column, [
+                    $start,
+                    Carbon::parse($date['created_at'])->endOfDay(),
+                ])
+                    ->count();
+
+                return [
+                    'key' => $key,
+                    'number_value' => $count,
+                    'created_at' => $date['created_at'],
+                ];
+            },
+            $interval,
+            $column,
+            $start,
+            $end,
+            $key,
+        );
     }
 }
