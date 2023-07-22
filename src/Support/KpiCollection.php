@@ -2,22 +2,30 @@
 
 namespace Finller\Kpi\Support;
 
-use Carbon\Carbon;
 use Exception;
-use Finller\Kpi\Enums\KpiInterval;
-use Finller\Kpi\Kpi;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Arr;
+use Carbon\Carbon;
+use Finller\Kpi\{
+    Kpi,
+    Enums\KpiInterval
+};
+use Illuminate\{
+    Support\Arr,
+    Database\Eloquent\Collection
+};
 
 class KpiCollection extends Collection
 {
-    public function fillGaps(?Carbon $start = null, ?Carbon $end = null, ?KpiInterval $interval = null, ?array $default = null): static
-    {
+    public function fillGaps(
+        ?Carbon $start = null,
+        ?Carbon $end = null,
+        ?KpiInterval $interval = null,
+        ?array $default = null
+    ): static {
         $model = config('kpi.kpi_model');
 
         $collection = new static($this->sortBy('created_at')->all());  // @phpstan-ignore-line
 
-        if (! $interval && ($this->count() < 2)) {
+        if (!$interval && ($this->count() < 2)) {
             throw new Exception("interval between items can't be guessed from a single element, provid the interval parameter.");
         }
 
@@ -32,7 +40,7 @@ class KpiCollection extends Collection
 
         $interval = $interval ?? $this->guessInterval();
 
-        if (! $start || ! $end || ! $interval) {
+        if (!$start || !$end || !$interval) {
             return $collection;
         }
 
@@ -44,7 +52,7 @@ class KpiCollection extends Collection
             /** @var ?Kpi $item */
             $item = $collection->get($indexItem);
 
-            if (! $item?->created_at->isSameAs($dateFormatComparator, $date)) {
+            if (!$item?->created_at->isSameAs($dateFormatComparator, $date)) {
                 $placeholderItem = $collection->get($indexItem - 1) ?? $item ?? $collection->last();
 
                 $placeholder = new $model();

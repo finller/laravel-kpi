@@ -51,6 +51,58 @@ Kpi::create([
 ]);
 ```
 
+For convenience, you could use the `HasKpi` trait on your model:
+
+```php
+namespace App\Models;
+
+use Finller\Kpi\HasKpi;
+
+class User extends Model
+{
+    use HasKpi;
+    
+    // ...
+}
+```
+
+If you have historical data, you could also call the `backfillKpiCount` method on your model:
+
+```php
+// Get the number of users for each day
+// from the beginning of your app
+User::backfillKpiCount();
+// Specify a interval, column, start and end dates
+User::backfillKpiCount(
+    interval: KpiInterval::Day, // default
+    column: 'created_at', // default
+    start: now()->subDay(30),
+    end: now(),
+    key: 'count' // default
+);
+// Backfill on callback
+User::backfillKpi(
+    callback: function (Builder $query) {
+        $query->whereBetween($column, [
+            $start,
+            Carbon::parse($date['created_at'])->endOfDay(),
+        ])
+            ->count();
+
+        return [
+            'key' => $key,
+            'number_value' => $count,
+            'created_at' => $date['created_at'],
+        ];
+    },
+    interval: KpiInterval::Day, // default
+    column: 'created_at', // default
+    start: now()->subDay(30),
+    end: now(),
+    key: 'count' // default
+);
+```
+
 Generally kpis are related to models, that's why we provid a trait `HasKpi` with a standardized way to name your kpi key `{namespace}:{key}`. For the User model, it would store your key in the `users` namespace like `users:{key}`.
 
 A standard way to save your kpi values would be in a command that runs every day.
