@@ -58,15 +58,19 @@ trait HasKpi
         ?Carbon $end = null,
         ?string $key = 'count'
     ): array {
-        $kpiModel = config('kpi.kpi_model');
-
-        return $kpiModel->backfillKpi(
+        return static::backfillKpi(
             function ($model, $start, $end, $key, $date) use ($column) {
-                return $model->whereBetween($column, [
+                $count = $model->whereBetween($column, [
                     $start,
                     Carbon::parse($date['created_at'])->endOfDay(),
                 ])
                     ->count();
+
+                return [
+                    'key' => $key,
+                    'number_value' => $count,
+                    'created_at' => $date['created_at'],
+                ];
             },
             $interval,
             $column,
