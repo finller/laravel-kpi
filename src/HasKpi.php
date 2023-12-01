@@ -50,7 +50,7 @@ trait HasKpi
         $kpis = static::registerDefaultKpis($date);
 
         if (method_exists(static::class, 'registerKpis')) {
-            $kpis->concat(static::registerKpis($date));
+            $kpis->push(...static::registerKpis($date));
         }
 
         return $kpis->map(function (callable|Kpi $item) {
