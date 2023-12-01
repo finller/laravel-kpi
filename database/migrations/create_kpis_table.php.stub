@@ -11,19 +11,18 @@ return new class extends Migration
         Schema::create('kpis', function (Blueprint $table) {
             $table->id();
 
-            $table->string('key')->index(); // A key to identify the kpi and group them
+            // A key to identify the kpi perform groupBy
+            $table->string('key')->index(); 
             
             // store any possible kind of value
+
             $table->decimal('number_value', 12, 2)->nullable();
-            
             $table->string('string_value')->nullable();
-            
             $table->bigInteger('money_value')->default(0);
             $table->string('money_currency')->nullable();
-            
             $table->json('json_value')->nullable();
 
-            $table->text('description')->nullable(); // store any comment
+            $table->text('description')->nullable();
             $table->json('metadata')->nullable();
 
             $table->timestamps();
