@@ -25,15 +25,16 @@ trait HasKpi
     /**
      * The date represent the date of the KPI
      */
-    public static function registerKpis(Carbon $date = null): Collection
+    public static function registerDefaultKpis(Carbon $date = null): Collection
     {
         $model = config('kpi.kpi_model');
 
         /** @var Builder $query */
-        $query = static::query()->when($date, fn (Builder $q) => $q->whereDate('created_at', '<=', $date->clone()));
+        $query = static::query();
+        $query->when($date, fn (Builder $q) => $q->whereDate('created_at', '<=', $date->clone()));
 
         return collect()
-            ->push(fn () => new $model([
+            ->push(new $model([
                 'key' => static::getKpiNamespace().':count',
                 'number_value' => $query->clone()->count(),
                 'created_at' => $date->clone(),
@@ -46,8 +47,18 @@ trait HasKpi
      */
     public static function snapshotKpis(Carbon $date = null): Collection
     {
-        return static::registerKpis($date)
-            ->map(fn (callable|Kpi $item) => value($item)?->save());
+        $kpis = static::registerDefaultKpis($date);
+
+        if (method_exists(static::class, 'registerKpis')) {
+            $kpis->concat(static::registerKpis($date));
+        }
+
+        return $kpis->map(function (callable|Kpi $item) {
+            $kpi = value($item);
+            $kpi?->save();
+
+            return $kpi;
+        });
     }
 
     public static function backfillKpis(
