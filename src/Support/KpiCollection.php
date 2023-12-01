@@ -11,7 +11,7 @@ use Illuminate\Support\Arr;
 
 class KpiCollection extends Collection
 {
-    public function fillGaps(?Carbon $start = null, ?Carbon $end = null, ?KpiInterval $interval = null, ?array $default = null): static
+    public function fillGaps(Carbon $start = null, Carbon $end = null, KpiInterval $interval = null, array $default = null): static
     {
         $model = config('kpi.kpi_model');
 

@@ -2,6 +2,8 @@
 
 namespace Finller\Kpi;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 trait HasKpi
@@ -18,13 +20,17 @@ trait HasKpi
         return KpiBuilder::query("{$namespace}:{$key}");
     }
 
-    public static function snapshotKpiCount()
+    public static function snapshotKpiCount(Carbon $date = null)
     {
         $model = config('kpi.kpi_model');
 
+        /** @var Builder $query */
+        $query = static::query()
+            ->when($date, fn (Builder $q) => $q->whereDate('created_at', '<=', $date));
+
         return $model::create([
             'key' => static::getKpiNamespace().':count',
-            'number_value' => static::count(),
+            'number_value' => $query->count(),
         ]);
     }
 }
