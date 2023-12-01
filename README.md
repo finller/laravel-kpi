@@ -245,10 +245,12 @@ To go from:
 | Jan | Feb | Mar |
 |-----|-----|-----|
 | 10 | 100 | 500 |
+
 To:
+
 | Jan | Feb | Mar |
-|-----|-----|-----|
-| 0 | 90 | 400 |
+| --- | --- | --- |
+| 0   | 90  | 400 |
 
 ```php
 KpiBuilder::query('users:count')
