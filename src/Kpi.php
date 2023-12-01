@@ -33,18 +33,7 @@ class Kpi extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'key',
-        'string_value',
-        'number_value',
-        'money_value',
-        'money_currency',
-        'json_value',
-        'description',
-        'metadata',
-        'created_at',
-        'updated_at',
-    ];
+    protected $guarded = [];
 
     protected $casts = [
         'number_value' => 'float',

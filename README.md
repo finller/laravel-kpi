@@ -8,7 +8,8 @@
 This package provides a way to store kpis from your app in your database and then retreive them easily in different ways. It is espacially usefull to tracks things related to your models like:
 
 -   the number of users
--   the number of products
+-   the number of subscribed users
+-   the total revenue
 -   ...
 
 It's a perfect tool for building dashboard ans display stats/charts.
@@ -31,7 +32,8 @@ php artisan migrate
 ## Usage
 
 This package is **not a query builder**, it's based on a kpi table where you will store all your kpis.
-With this approach, your kpis from the past (like the number of users you had a year ago) will not be altered if you permanently delete a model. And retreiving kpis will be much more efficient when asking for computed values that often require join like "users who have purchased last week" for example.
+With this approach, your kpis from the past (like the number of users you had a year ago) will not be altered if you permanently delete a model.
+Rretreiving kpis will aslo be much more efficient when asking for computed values that often require join like "users who have purchased last week" for example.
 
 ### Step 1: Store kpis in you database
 
@@ -51,7 +53,13 @@ Kpi::create([
 ]);
 ```
 
-For convenience, you could use the `HasKpi` trait on your model:
+#### Define KPIs for each model
+
+Generally kpis are related to models, that's why we provid a trait `HasKpi` with a standardized way to name your kpi key `{namespace}:{key}`. For the User model, it would store your key in the `users` namespace like `users:{key}`.
+
+By default the trait only define 1 KPI: `Model::count()`
+
+You can define your own KPIs freely with the method `registerKpis`. Here is an example:
 
 ```php
 namespace App\Models;
@@ -61,59 +69,87 @@ use Finller\Kpi\HasKpi;
 class User extends Model
 {
     use HasKpi;
-    
-    // ...
+
+    /*
+     * The date represent the date of the KPI
+     */
+    public static function registerKpis(Carbon $date = null): Collection
+    {
+        /** @var Builder $query */
+        $query = static::query()->when($date, fn (Builder $q) => $q->whereDate('created_at', '<=', $date->clone()));
+
+        return collect()
+            ->push(fn () => new Kpi([
+                'key' => static::getKpiNamespace() . ':count',
+                'number_value' => $query->clone()->count(),
+                'created_at' => $date->clone(),
+            ]))
+            ->push(fn () => new Kpi([
+                'key' => static::getKpiNamespace() . ':active:count',
+                'number_value' => $query->clone()->active()->count(),
+                'created_at' => $date->clone(),
+            ]))
+            ->push(fn () => new Kpi([
+                'key' => static::getKpiNamespace() . ':subscribed:count',
+                'number_value' => $query->clone()->subscribed()->count(),
+                'created_at' => $date->clone(),
+            ]));
+    }
 }
 ```
 
-If you have historical data, you could also call the `backfillKpiCount` method on your model:
+Notice that, the method accept a `$date` parameter. This allow you to take KPIs snapshot "in the past".
+This is usefull for already existing project, or simply when you add a new KPI to the list.
 
-```php
-// Get the number of users for each day
-// from the beginning of your app
-User::backfillKpiCount();
-// Specify a interval, column, start and end dates
-User::backfillKpiCount(
-    interval: KpiInterval::Day, // default
-    column: 'created_at', // default
-    start: now()->subDay(30),
-    end: now(),
-    key: 'count' // default
-);
-// Backfill on callback
-User::backfillKpi(
-    callback: function (Builder $query) {
-        $query->whereBetween($column, [
-            $start,
-            Carbon::parse($date['created_at'])->endOfDay(),
-        ])
-            ->count();
-
-        return [
-            'key' => $key,
-            'number_value' => $count,
-            'created_at' => $date['created_at'],
-        ];
-    },
-    interval: KpiInterval::Day, // default
-    column: 'created_at', // default
-    start: now()->subDay(30),
-    end: now(),
-    key: 'count' // default
-);
-```
-
-Generally kpis are related to models, that's why we provid a trait `HasKpi` with a standardized way to name your kpi key `{namespace}:{key}`. For the User model, it would store your key in the `users` namespace like `users:{key}`.
+Then, you have to save those Kpis in the database with the `snapshotKpis` method.
 
 A standard way to save your kpi values would be in a command that runs every day.
 
-You are free to store as much kpis as needed, even multiple times in a day, so you got more recent data.
+Here is an example:
+
+```php
+namespace App\Console\Commands;
+
+use App\Models\User;
+
+class SnapshotKpisCommand extends Command
+{
+    protected $signature = 'kpis:snapshot';
+    protected $description = 'Snapshot KPI';
+
+    public function handle()
+    {
+        User::snapshotKpis();
+    }
+}
+```
+
+Then add it to `Kernel`
+
+```php
+namespace App\Console;
+
+use App\Console\Commands\SnapshotKpiCommand;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+
+class Kernel extends ConsoleKernel
+{
+
+    protected function schedule(Schedule $schedule)
+    {
+        $schedule->command(SnapshotKpiCommand::class)->dailyAt('00:00');
+    }
+}
+```
+
+You are free to store as much kpis as needed, even multiple times in a day, so you can get more recent data.
 
 ### Step 2: Retreive your kpis
 
 You can retreive kpis by using usefull scopes and the native eloquent Builder methods.
 
-For example, if I want to query kpis under `users:count`, I would use:
+For example, if I want to query kpis under `users:count`, you could use:
 
 ```php
 // With Kpi model
@@ -162,7 +198,7 @@ Kpi::query()->perYear()->get();
 
 In some cases, you could have missed a snapshot. Let's say that your snapshot kpi command failed or your server was down.
 
-To fill the gaps let by missing values, you can use the `fillGaps` method available on `KpiBuilder` or  `KpiCollection`.
+To fill the gaps let by missing values, you can use the `fillGaps` method available on `KpiBuilder` or `KpiCollection`.
 By default the placeholders will be a copy of their previous kpi.
 
 For convenience the `KpiBuilder` is the best option as it will give you better typed values and shares parameters between `fillGaps` and `between`.
@@ -181,7 +217,7 @@ Kpi::query()
         interval: KpiInterval::Day,
         default: ['number_value' => 0]
     );
-    
+
 KpiBuilder::query('users:blocked:count')
     ->perDay()
     ->between(now()->subWeek(), now())
@@ -194,6 +230,60 @@ Kpi::query()
     ->perDay()
     ->get()
     ->fillGaps(); // if you do not specify anything when using KpiCollection, the start, end and the interval values will be guessed from your dataset
+```
+
+#### Get relative values
+
+Some Kpis are only relevant when taken relatively to others or to a period.
+
+For example, the number of new registered users by month can be obtained without registering a specific KPIs,
+but by taking the relative values of the default `User::count()` KPI.
+
+You can easily get your Kpis in a relative format by using different methods:
+
+To go from:
+| Jan | Feb | Mar |
+|-----|-----|-----|
+| 10 | 100 | 500 |
+To:
+| Jan | Feb | Mar |
+|-----|-----|-----|
+| 0 | 90 | 400 |
+
+```php
+KpiBuilder::query('users:count')
+    ->relative()
+    ->perMonth()
+    ->between(now()->subYear(), now())
+    ->get();
+
+Kpi::query()
+    ->where('key', 'users:blocked:count')
+    ->between(now()->subYear(), now())
+    ->perMonth()
+    ->get()
+    ->toRelative(); // when using KpiCollection
+```
+
+#### Combine multiple Kpis together
+
+When a KPI is a direct result of a combination of 2 other KPIs, it might not be worth to save it in the database.
+You can combine KPIs together to create a new one simply by using the `combineWith` method from the `KpiCollection`.
+
+Here is an example:
+
+```php
+$usersCount = User::kpi('count')->perDay()->get();
+
+$subscribedUsersCount = User::kpi('subscribed:count')->perDay()->get();
+
+$usersCount->combineWith(
+    $subscribedUsersCount,
+    fn(Kpi $userCount, Kpi $subscribedUsersCount) => new Kpi([
+        ...$userCount->toArray,
+        'number_value' => $subscribedUsersCount->number_value / $userCount->number_value
+    ])
+);
 ```
 
 ## Testing
