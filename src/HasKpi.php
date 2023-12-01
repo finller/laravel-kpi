@@ -5,7 +5,7 @@ namespace Finller\Kpi;
 use Carbon\Carbon;
 use Finller\Kpi\Enums\KpiInterval;
 use Illuminate\Contracts\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 trait HasKpi
@@ -35,7 +35,7 @@ trait HasKpi
 
         return collect()
             ->push(new $model([
-                'key' => static::getKpiNamespace().':count',
+                'key' => static::getKpiNamespace() . ':count',
                 'number_value' => $query->clone()->count(),
                 'created_at' => $date?->clone(),
             ]));
