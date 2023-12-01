@@ -7,12 +7,21 @@ use Exception;
 use Finller\Kpi\Enums\KpiInterval;
 use Finller\Kpi\Kpi;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Arr;
 
+/**
+ * @template TKey of array-key
+ * @template TModel of Kpi
+ *
+ * @extends \Illuminate\Database\Eloquent\Collection<TKey, TModel>
+ */
 class KpiCollection extends Collection
 {
-    public function fillGaps(Carbon $start = null, Carbon $end = null, KpiInterval $interval = null, array $default = null): static
-    {
+    public function fillGaps(
+        Carbon $start = null,
+        Carbon $end = null,
+        KpiInterval $interval = null,
+        array $default = null
+    ): static {
         $model = config('kpi.kpi_model');
 
         $collection = new static($this->sortBy('created_at')->all());  // @phpstan-ignore-line
@@ -41,14 +50,16 @@ class KpiCollection extends Collection
         $dateFormatComparator = $interval->dateFormatComparator();
 
         while ($date->lessThanOrEqualTo($end)) {
-            /** @var ?Kpi $item */
             $item = $collection->get($indexItem);
 
             if (! $item?->created_at->isSameAs($dateFormatComparator, $date)) {
                 $placeholderItem = $collection->get($indexItem - 1) ?? $item ?? $collection->last();
 
+                $attributes = $default ?? $placeholderItem?->attributesToArray() ?? [];
+
+                /** @var Kpi $placeholder */
                 $placeholder = new $model();
-                $placeholder->fill(Arr::only($default ?? $placeholderItem?->attributesToArray() ?? [], $placeholder->getFillable()));
+                $placeholder->fill($attributes);
                 $placeholder->created_at = $date->clone();
                 $placeholder->updated_at = $date->clone();
 

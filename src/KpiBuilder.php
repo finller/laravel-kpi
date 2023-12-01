@@ -46,7 +46,7 @@ class KpiBuilder
 
     public function relative($value = true): static
     {
-        $this->relative = true;
+        $this->relative = $value;
 
         return $this;
     }
