@@ -37,7 +37,7 @@ trait HasKpi
             ->push(new $model([
                 'key' => static::getKpiNamespace().':count',
                 'number_value' => $query->clone()->count(),
-                'created_at' => $date->clone(),
+                'created_at' => $date?->clone(),
             ]));
     }
 
