@@ -3,10 +3,12 @@
 namespace Finller\Kpi\Support;
 
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Exception;
 use Finller\Kpi\Enums\KpiInterval;
 use Finller\Kpi\Kpi;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection as SupportCollection;
 
 /**
  * @template TKey of array-key
@@ -16,6 +18,51 @@ use Illuminate\Database\Eloquent\Collection;
  */
 class KpiCollection extends Collection
 {
+    /**
+     * Find missing Kpi dates
+     */
+    public function findGaps(
+        KpiInterval $interval,
+        Carbon $start = null,
+        Carbon $end = null,
+    ): SupportCollection {
+        if ($this->count() < 2) {
+            return collect();
+        }
+
+        $items = $this->sortBy('created_at');
+        $start ??= $items->first()?->created_at;
+        $end ??= $items->last()?->created_at;
+
+        $dateFormatComparator = $interval->dateFormatComparator();
+
+        $expected = CarbonPeriod::start($start, true)
+            ->end($end, true)
+            ->interval("1 {$interval->value}")
+            ->toArray();
+
+        $actual = $this->pluck('created_at')->toArray();
+
+        $gaps = array_udiff($expected, $actual, function (Carbon $a, Carbon $b) use ($dateFormatComparator): int {
+            if ($a->isSameAs($dateFormatComparator, $b)) {
+                return 0;
+            }
+            if ($a->isBefore($b)) {
+                return -1;
+            }
+
+            return 1;
+        });
+
+        // dd(
+        //     collect($gaps)->map(fn ($date) => $date->format('Y-m-d'))->toArray(),
+        //     collect($expected)->map(fn ($date) => $date->format('Y-m-d'))->toArray(),
+        //     collect($actual)->map(fn ($date) => $date->format('Y-m-d'))->toArray(),
+        // );
+
+        return collect($gaps);
+    }
+
     public function fillGaps(
         Carbon $start = null,
         Carbon $end = null,

@@ -1,5 +1,6 @@
 <?php
 
+use Carbon\Carbon;
 use Finller\Kpi\Enums\KpiInterval;
 use Finller\Kpi\Kpi;
 use Finller\Kpi\Support\KpiCollection;
@@ -15,6 +16,35 @@ it('can guess interval between items', function (KpiInterval $interval) {
     );
 
     expect($collection->guessInterval())->toBe($interval);
+})->with($supportedIntervals);
+
+it('can find gaps items', function (KpiInterval $interval) {
+    $collection = new KpiCollection(
+        Kpi::factory(5)->sequence(
+            ['created_at' => now()],
+            ['created_at' => now()->add($interval->value, 1)],
+            // missing kpi 2
+            ['created_at' => now()->add($interval->value, 3)],
+            ['created_at' => now()->add($interval->value, 4)],
+            // missing kpi 5
+            // missing kpi 6
+            ['created_at' => now()->add($interval->value, 7)],
+        )->make()
+    );
+    expect($collection->count())->toBe(5);
+
+    $gaps = $collection->findGaps(interval: $interval);
+
+    expect($gaps->count())->toBe(3);
+
+    $expectedGaps = collect([now()->add($interval->value, 2), now()->add($interval->value, 5), now()->add($interval->value, 6)])
+        ->map(fn (Carbon $date) => $date->format($interval->dateFormatComparator()))
+        ->values()
+        ->toArray();
+
+    $formattedGaps = $gaps->map(fn (Carbon $date) => $date->format($interval->dateFormatComparator()))->values()->toArray();
+
+    expect($formattedGaps)->toMatchArray($expectedGaps);
 })->with($supportedIntervals);
 
 it('can combine two KpiCollections', function (KpiInterval $interval) {

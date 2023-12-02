@@ -53,26 +53,38 @@ trait HasKpi
             $kpis->push(...static::registerKpis($date));
         }
 
-        return $kpis->map(function (callable|Kpi $item) {
-            $kpi = value($item);
-            $kpi?->save();
+        return $kpis->map(function (Kpi $kpi) {
+            $kpi->created_at ??= now();
+            $kpi->save();
 
             return $kpi;
         });
     }
 
+    /**
+     * @param  Carbon[]  $except
+     * @return Collection<int, Kpi>
+     */
     public static function backfillKpis(
         Carbon $start,
         Carbon $end,
         ?KpiInterval $interval = KpiInterval::Day,
-    ) {
+        array $except = [],
+    ): Collection {
+        $kpis = collect();
+
+        $except = array_map(fn (Carbon $date) => $date->format($interval->dateFormatComparator()), $except);
+
         $date = $start->clone();
 
         while ($date->lessThanOrEqualTo($end)) {
-
-            static::snapshotKpis($date);
+            if (! in_array($date->format($interval->dateFormatComparator()), $except)) {
+                $kpis->push(...static::snapshotKpis($date));
+            }
 
             $date->add($interval->value, 1);
         }
+
+        return $kpis;
     }
 }

@@ -79,11 +79,12 @@ class User extends Model
         $query = static::query()->when($date, fn (Builder $q) => $q->whereDate('created_at', '<=', $date->clone()));
 
         return collect()
-            ->push(fn () => new Kpi([
-                'key' => static::getKpiNamespace() . ':count',
-                'number_value' => $query->clone()->count(),
-                'created_at' => $date->clone(),
-            ]))
+            // the count Kpi is always snapshot, you don't need to register it
+            // ->push(fn () => new Kpi([
+            //     'key' => static::getKpiNamespace() . ':count',
+            //     'number_value' => $query->clone()->count(),
+            //     'created_at' => $date->clone(),
+            // ]))
             ->push(fn () => new Kpi([
                 'key' => static::getKpiNamespace() . ':active:count',
                 'number_value' => $query->clone()->active()->count(),
@@ -230,6 +231,37 @@ Kpi::query()
     ->perDay()
     ->get()
     ->fillGaps(); // if you do not specify anything when using KpiCollection, the start, end and the interval values will be guessed from your dataset
+```
+
+#### Find gaps in Kpis
+
+You can also find gaps in a KpiCollection using `findGaps` method.
+It can be usefull to snapshot these missing kpi later with something like:
+
+```php
+$gaps = Model::kpi('count')
+    ->perDay()
+    ->between(now()->subMonth())
+    ->get()
+    ->findGaps(interval: KpiInterval::Day, start: now()->subMonth(), end: now());
+
+$gaps->each(function(Carbon $date){
+    Model::snapshotKpis($date);
+});
+```
+
+#### Fill KPIs on a period for existing projects or when adding new KPIs
+
+For existing project or when ading a new KPI, you may want to fill your KPIs with data from the past.
+
+The `HasKpi` trait allow you to do it like so:
+
+```php
+Model::backfillKpis(
+    start: now()->subYear(),
+    end: now(),
+    interval: KpiInterval::Day
+);
 ```
 
 #### Get relative values
