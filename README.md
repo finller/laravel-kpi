@@ -80,17 +80,17 @@ class User extends Model
 
         return collect()
             // the count Kpi is always snapshot, you don't need to register it
-            // ->push(fn () => new Kpi([
+            // ->push(new Kpi([
             //     'key' => static::getKpiNamespace() . ':count',
             //     'number_value' => $query->clone()->count(),
             //     'created_at' => $date->clone(),
             // ]))
-            ->push(fn () => new Kpi([
+            ->push(new Kpi([
                 'key' => static::getKpiNamespace() . ':active:count',
                 'number_value' => $query->clone()->active()->count(),
                 'created_at' => $date->clone(),
             ]))
-            ->push(fn () => new Kpi([
+            ->push(new Kpi([
                 'key' => static::getKpiNamespace() . ':subscribed:count',
                 'number_value' => $query->clone()->subscribed()->count(),
                 'created_at' => $date->clone(),
