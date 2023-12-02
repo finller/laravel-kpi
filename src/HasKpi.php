@@ -24,6 +24,8 @@ trait HasKpi
 
     /**
      * The date represent the date of the KPI
+     *
+     * @return Collection<string, callable|Kpi>
      */
     public static function registerDefaultKpis(Carbon $date = null): Collection
     {
@@ -34,52 +36,65 @@ trait HasKpi
         $query->when($date, fn (Builder $q) => $q->whereDate('created_at', '<=', $date->clone()));
 
         return collect()
-            ->push(new $model([
-                'key' => static::getKpiNamespace().':count',
+            ->put('count', new $model([
                 'number_value' => $query->clone()->count(),
-                'created_at' => $date?->clone() ?? now(),
+                'created_at' => $date?->clone(),
             ]));
     }
 
     /**
      * When providing a date, the snapshot only take data prior to this date
      * Just like if you would have taken the snapshot in the past.
+     *
+     * @param  null|string[]  $only Array of kpi keys to snapshot
      */
-    public static function snapshotKpis(Carbon $date = null): Collection
+    public static function snapshotKpis(Carbon $date = null, array $only = null, array $except = null): Collection
     {
         $kpis = static::registerDefaultKpis($date);
 
         if (method_exists(static::class, 'registerKpis')) {
-            $kpis->push(...static::registerKpis($date));
+            $kpis = $kpis->merge(static::registerKpis($date));
         }
 
-        return $kpis->map(function (Kpi $kpi) {
-            $kpi->created_at ??= now();
-            $kpi->save();
+        $namespace = static::getKpiNamespace();
 
-            return $kpi;
-        });
+        return $kpis
+            ->only($only)
+            ->except($except)
+            ->map(function (callable|Kpi $item, $key) use ($namespace) {
+                $kpi = value($item);
+
+                $kpi->key ??= "{$namespace}:{$key}";
+                $kpi->created_at ??= now();
+                $kpi->save();
+
+                return $kpi;
+            });
     }
 
     /**
-     * @param  Carbon[]  $except
+     * @param  Carbon[]  $exceptDates
+     * @param  null|string[]  $onlyKeys Kpi keys to snapshot
+     * @param  null|string[]  $exceptKeys Kpi keys not to snapshot
      * @return Collection<int, Kpi>
      */
     public static function backfillKpis(
         Carbon $start,
         Carbon $end,
         ?KpiInterval $interval = KpiInterval::Day,
-        array $except = [],
+        array $onlyKeys = null,
+        array $exceptKeys = null,
+        array $exceptDates = [],
     ): Collection {
         $kpis = collect();
 
-        $except = array_map(fn (Carbon $date) => $date->format($interval->dateFormatComparator()), $except);
+        $exceptDates = array_map(fn (Carbon $date) => $date->format($interval->dateFormatComparator()), $exceptDates);
 
         $date = $start->clone();
 
         while ($date->lessThanOrEqualTo($end)) {
-            if (! in_array($date->format($interval->dateFormatComparator()), $except)) {
-                $kpis->push(...static::snapshotKpis($date));
+            if (! in_array($date->format($interval->dateFormatComparator()), $exceptDates)) {
+                $kpis->push(...static::snapshotKpis($date, $onlyKeys, $exceptKeys));
             }
 
             $date->add($interval->value, 1);

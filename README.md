@@ -59,7 +59,8 @@ Generally kpis are related to models, that's why we provid a trait `HasKpi` with
 
 By default the trait only define 1 KPI: `Model::count()`
 
-You can define your own KPIs freely with the method `registerKpis`. Here is an example:
+You can define your own KPIs freely with the method `registerKpis`.
+Here is an example:
 
 ```php
 namespace App\Models;
@@ -79,25 +80,21 @@ class User extends Model
         $query = static::query()->when($date, fn (Builder $q) => $q->whereDate('created_at', '<=', $date->clone()));
 
         return collect()
-            // the count Kpi is always snapshot, you don't need to register it
-            // ->push(new Kpi([
-            //     'key' => static::getKpiNamespace() . ':count',
-            //     'number_value' => $query->clone()->count(),
-            //     'created_at' => $date->clone(),
-            // ]))
-            ->push(new Kpi([
-                'key' => static::getKpiNamespace() . ':active:count',
+            // The model count Kpi is always snapshoted, you don't need to register it
+            // The Kpi key will be automatially set with the right namespace
+            ->put('active:count', new Kpi([
                 'number_value' => $query->clone()->active()->count(),
                 'created_at' => $date->clone(),
             ]))
-            ->push(new Kpi([
-                'key' => static::getKpiNamespace() . ':subscribed:count',
+            ->put('subscribed:count', new Kpi([
                 'number_value' => $query->clone()->subscribed()->count(),
                 'created_at' => $date->clone(),
             ]));
     }
 }
 ```
+
+Each item of the collection can either have a key that represent the Kpi key, or define directly the Kpi key.
 
 Notice that, the method accept a `$date` parameter. This allow you to take KPIs snapshot "in the past".
 This is usefull for already existing project, or simply when you add a new KPI to the list.
