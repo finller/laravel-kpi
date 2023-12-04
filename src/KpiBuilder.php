@@ -3,6 +3,7 @@
 namespace Finller\Kpi;
 
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Finller\Kpi\Enums\KpiInterval;
 use Finller\Kpi\Support\KpiCollection;
 use Illuminate\Database\Eloquent\Builder;
@@ -11,9 +12,9 @@ class KpiBuilder
 {
     public ?KpiInterval $interval = null;
 
-    public ?Carbon $start = null;
+    public ?CarbonInterface $start = null;
 
-    public ?Carbon $end = null;
+    public ?CarbonInterface $end = null;
 
     public bool $fillGaps = false;
 
@@ -51,7 +52,7 @@ class KpiBuilder
         return $this;
     }
 
-    public function between(Carbon $start = null, Carbon $end = null): static
+    public function between(CarbonInterface $start = null, CarbonInterface $end = null): static
     {
         $this->start = $start;
         $this->end = $end;

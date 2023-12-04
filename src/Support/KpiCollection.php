@@ -182,7 +182,7 @@ class KpiCollection extends Collection
     }
 
     /**
-     * @return ?Kpi
+     * @return null|array{number_value: ?float, money_value: ?float, json_value: null, string_value: null}
      */
     public function getVariation()
     {
