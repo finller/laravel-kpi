@@ -129,6 +129,15 @@ class Kpi extends Model
         ]);
     }
 
+    public function toVariation(?Kpi $kpi): static
+    {
+        // @phpstan-ignore-next-line
+        return new static([
+            'number_value' => $this->toNumberVariation($kpi?->number_value),
+            'money_value' => $this->toMoneyVariation($kpi?->money_value),
+        ]);
+    }
+
     protected function toNumberDifference(float|int|null $value, bool $relative = false): ?float
     {
         if (! $this->number_value || $value === null) {
@@ -136,7 +145,7 @@ class Kpi extends Model
         }
 
         if ($relative) {
-            return (floatval($this->number_value) - floatval($value)) / floatval($this->number_value);
+            return $this->toNumberVariation($value);
         }
 
         return floatval($this->number_value) - floatval($value);
@@ -148,5 +157,22 @@ class Kpi extends Model
     protected function toMoneyDifference($value, bool $relative = false): ?float
     {
         return $this->toNumberDifference($value, $relative);
+    }
+
+    protected function toNumberVariation(float|int|null $value): ?float
+    {
+        if (! $this->number_value || $value === null) {
+            return null;
+        }
+
+        return (floatval($this->number_value) - floatval($value)) / floatval($this->number_value);
+    }
+
+    /**
+     * @param  float|int|null  $value
+     */
+    protected function toMoneyVariation($value): ?float
+    {
+        return $this->toNumberDifference($value);
     }
 }

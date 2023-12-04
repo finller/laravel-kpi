@@ -54,12 +54,6 @@ class KpiCollection extends Collection
             return 1;
         });
 
-        // dd(
-        //     collect($gaps)->map(fn ($date) => $date->format('Y-m-d'))->toArray(),
-        //     collect($expected)->map(fn ($date) => $date->format('Y-m-d'))->toArray(),
-        //     collect($actual)->map(fn ($date) => $date->format('Y-m-d'))->toArray(),
-        // );
-
         return collect($gaps);
     }
 
@@ -185,5 +179,20 @@ class KpiCollection extends Collection
         });
 
         return $collection;
+    }
+
+    /**
+     * @return ?Kpi
+     */
+    public function getVariation()
+    {
+        $first = $this->first();
+        $last = $this->last();
+
+        if (! $last || ! $first) {
+            return null;
+        }
+
+        return $last->toVariation($first);
     }
 }
