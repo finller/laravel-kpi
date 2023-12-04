@@ -126,16 +126,22 @@ class Kpi extends Model
         return new static([
             'number_value' => $this->toNumberDifference($kpi?->number_value, $relative),
             'money_value' => $this->toMoneyDifference($kpi?->money_value, $relative),
+            'json_value' => null,
+            'string_value' => null,
         ]);
     }
 
-    public function toVariation(?Kpi $kpi): static
+    /**
+     * @return array{number_value: ?float, money_value: ?float, json_value: null, string_value: null}
+     */
+    public function toVariation(?Kpi $kpi): array
     {
-        // @phpstan-ignore-next-line
-        return new static([
+        return [
             'number_value' => $this->toNumberVariation($kpi?->number_value),
             'money_value' => $this->toMoneyVariation($kpi?->money_value),
-        ]);
+            'json_value' => null,
+            'string_value' => null,
+        ];
     }
 
     protected function toNumberDifference(float|int|null $value, bool $relative = false): ?float
