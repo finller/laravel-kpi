@@ -4,6 +4,7 @@ namespace Finller\Kpi;
 
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
+use Carbon\CarbonPeriod;
 use Finller\Kpi\Enums\KpiInterval;
 use Finller\Kpi\Support\KpiCollection;
 use Illuminate\Database\Eloquent\Builder;
@@ -56,6 +57,17 @@ class KpiBuilder
     {
         $this->start = $start;
         $this->end = $end;
+
+        return $this;
+    }
+
+    /**
+     * Set start and end from a CarbonPeriod
+     */
+    public function period(CarbonPeriod $period): static
+    {
+        $this->start = $period->getStartDate();
+        $this->end = $period->getEndDate();
 
         return $this;
     }

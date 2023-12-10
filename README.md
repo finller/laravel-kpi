@@ -33,7 +33,8 @@ php artisan migrate
 
 This package is **not a query builder**, it's based on a kpi table where you will store all your kpis.
 With this approach, your kpis from the past (like the number of users you had a year ago) will not be altered if you permanently delete a model.
-Rretreiving kpis will aslo be much more efficient when asking for computed values that often require join like "users who have purchased last week" for example.
+
+Retreiving kpis will aslo be much more efficient when asking for computed values that often require join like "users who have purchased last week" for example.
 
 ### Step 1: Store kpis in you database
 
@@ -73,20 +74,23 @@ class User extends Model
 
     /*
      * The date represent the date of the KPI
+     * It is usefull when capturing a Kpi from the past
      */
     public static function registerKpis(Carbon $date = null): Collection
     {
-        /** @var Builder $query */
-        $query = static::query()->when($date, fn (Builder $q) => $q->whereDate('created_at', '<=', $date->clone()));
+        $query = static::query()
+            ->when($date, fn (Builder $q) => $q->whereDate('created_at', '<=', $date->clone()));
 
+         // The model count Kpi is always snapshoted, you don't need to register it
         return collect()
-            // The model count Kpi is always snapshoted, you don't need to register it
-            // The Kpi key will be automatially set with the right namespace
+            // When using `put`, the kpi namespace will be automatially
             ->put('active:count', new Kpi([
                 'number_value' => $query->clone()->active()->count(),
                 'created_at' => $date->clone(),
             ]))
-            ->put('subscribed:count', new Kpi([
+            // You can also manually define the key
+            ->push( new Kpi([
+                'key' =>
                 'number_value' => $query->clone()->subscribed()->count(),
                 'created_at' => $date->clone(),
             ]));
@@ -99,7 +103,9 @@ Each item of the collection can either have a key that represent the Kpi key, or
 Notice that, the method accept a `$date` parameter. This allow you to take KPIs snapshot "in the past".
 This is usefull for already existing project, or simply when you add a new KPI to the list.
 
-Then, you have to save those Kpis in the database with the `snapshotKpis` method.
+### Step 2: Capture the Kpis with a command
+
+After registering the kpis you have to save them in the database with the `snapshotKpis` method.
 
 A standard way to save your kpi values would be in a command that runs every day.
 
@@ -143,11 +149,11 @@ class Kernel extends ConsoleKernel
 
 You are free to store as much kpis as needed, even multiple times in a day, so you can get more recent data.
 
-### Step 2: Retreive your kpis
+### Step 3: Retreive your kpis
 
 You can retreive kpis by using usefull scopes and the native eloquent Builder methods.
 
-For example, if I want to query kpis under `users:count`, you could use:
+For example, if you want to query kpis under `users:count` key, you could use:
 
 ```php
 // With Kpi model
@@ -230,6 +236,8 @@ Kpi::query()
     ->fillGaps(); // if you do not specify anything when using KpiCollection, the start, end and the interval values will be guessed from your dataset
 ```
 
+### Missing Kpis and fill values from the past
+
 #### Find gaps in Kpis
 
 You can also find gaps in a KpiCollection using `findGaps` method.
@@ -260,6 +268,8 @@ Model::backfillKpis(
     interval: KpiInterval::Day
 );
 ```
+
+### Transforming Kpi Values
 
 #### Get relative values
 
