@@ -57,65 +57,74 @@ class KpiCollection extends Collection
         return collect($gaps);
     }
 
+    public function getStartDate(): ?Carbon
+    {
+        return $this->first()?->created_at;
+    }
+
+    public function getEndDate(): ?Carbon
+    {
+        return $this->last()?->created_at;
+    }
+
     public function fillGaps(
         Carbon $start = null,
         Carbon $end = null,
         KpiInterval $interval = null,
         array $default = null
     ): static {
+        /** @var Kpi */
         $model = config('kpi.kpi_model');
 
-        $collection = new static($this->sortBy('created_at')->all());  // @phpstan-ignore-line
+        $items = $this->sortBy('created_at');
 
         if (! $interval && ($this->count() < 2)) {
-            throw new Exception("interval between items can't be guessed from a single element, provid the interval parameter.");
+            throw new Exception("Interval between items can't be guessed from a single element, provid the interval parameter.");
         }
 
-        /** @var ?Kpi */
-        $firstItem = $collection->first();
-        /** @var ?Kpi */
-        $lastItem = $collection->last();
-        /** @var ?Carbon */
-        $start = $start ?? $firstItem?->created_at;
-        /** @var ?Carbon */
-        $end = $end ?? $lastItem?->created_at;
+        if ($items->isEmpty() && ! $default) {
+            throw new Exception("The gaps can't be filled when the Kpi collection is empty and no default value is provided.");
+        }
 
+        $start = $start ?? $this->getStartDate();
+        $end = $end ?? $this->getEndDate();
         $interval = $interval ?? $this->guessInterval();
 
         if (! $start || ! $end || ! $interval) {
-            return $collection;
+            return $items;
         }
 
-        $date = $start->clone();
-        $indexItem = 0;
         $dateFormatComparator = $interval->dateFormatComparator();
 
-        while ($date->lessThanOrEqualTo($end)) {
-            $item = $collection->get($indexItem);
+        $period = CarbonPeriod::start($start, inclusive: true)
+            ->end($end, inclusive: true)
+            ->interval("1 {$interval->value}");
 
-            if (! $item?->created_at->isSameAs($dateFormatComparator, $date)) {
-                $placeholderItem = $collection->get($indexItem - 1) ?? $item ?? $collection->last();
+        /** @var Carbon $date */
+        foreach ($period as $key => $date) {
+            $item = $items->get($key);
+            $previousItem = $items->get($key - 1); // will be used as a placeholder if no default is provided
+            $firstItem = $items->first(); // will be used as a placeholder if the first date is missing
 
-                $attributes = $default ?? $placeholderItem?->attributesToArray() ?? [];
+            $placeholderValue = $default ?? $previousItem?->attributesToArray() ?? $firstItem->attributesToArray();
 
-                /** @var Kpi $placeholder */
-                $placeholder = new $model();
-                $placeholder->fill($attributes);
-                $placeholder->created_at = $date->clone();
-                $placeholder->updated_at = $date->clone();
+            $placeholder = new $model();
+            $placeholder->fill($placeholderValue);
+            $placeholder->created_at = $date->clone();
+            $placeholder->updated_at = $date->clone();
 
-                $collection->splice(
-                    $indexItem,
-                    0,
-                    [$placeholder]
+            if (! $item) {
+                $items->put($key, $placeholder);
+            } elseif (! $item->created_at->isSameAs($dateFormatComparator, $date)) {
+                $items->splice(
+                    offset: $key,
+                    length: 0,
+                    replacement: [$placeholder]
                 );
             }
-
-            $indexItem++;
-            $date->add($interval->value, 1);
         }
 
-        return $collection;
+        return $items;
     }
 
     public static function getIntervalFromDates(Carbon $before, Carbon $after): ?KpiInterval

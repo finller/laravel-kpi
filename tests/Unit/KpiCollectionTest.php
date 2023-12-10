@@ -18,7 +18,7 @@ it('can guess interval between items', function (KpiInterval $interval) {
     expect($collection->guessInterval())->toBe($interval);
 })->with($supportedIntervals);
 
-it('can find gaps items', function (KpiInterval $interval) {
+it('can find gaps between items', function (KpiInterval $interval) {
     $collection = new KpiCollection(
         Kpi::factory(5)->sequence(
             ['created_at' => now()],
@@ -45,6 +45,62 @@ it('can find gaps items', function (KpiInterval $interval) {
     $formattedGaps = $gaps->map(fn (Carbon $date) => $date->format($interval->dateFormatComparator()))->values()->toArray();
 
     expect($formattedGaps)->toMatchArray($expectedGaps);
+})->with($supportedIntervals);
+
+it('can fill gaps between items by guessing state', function (KpiInterval $interval) {
+    $collectionWithGaps = new KpiCollection(
+        Kpi::factory(5)->sequence(
+            ['created_at' => now()],
+            ['created_at' => now()->add($interval->value, 1)],
+            // missing kpi 2
+            ['created_at' => now()->add($interval->value, 3)],
+            ['created_at' => now()->add($interval->value, 4)],
+            // missing kpi 5
+            // missing kpi 6
+            ['created_at' => now()->add($interval->value, 7)],
+        )->number()->make(['key' => 'users:count'])
+    );
+    expect($collectionWithGaps->count())->toBe(5);
+
+    $collectionWithoutGaps = $collectionWithGaps->fillGaps();
+
+    expect($collectionWithoutGaps->count())->toBe(8);
+
+    expect($collectionWithoutGaps->get(2)->number_value)->toBe($collectionWithoutGaps->get(1)->number_value);
+    expect($collectionWithoutGaps->get(5)->number_value)->toBe($collectionWithoutGaps->get(4)->number_value);
+    expect($collectionWithoutGaps->get(6)->number_value)->toBe($collectionWithoutGaps->get(4)->number_value);
+
+})->with($supportedIntervals);
+
+it('can fill gaps between items with explicite state', function (KpiInterval $interval) {
+    $collectionWithGaps = new KpiCollection(
+        Kpi::factory(4)->sequence(
+            // missing kpi 0
+            ['created_at' => now()->add($interval->value, 1)],
+            // missing kpi 2
+            ['created_at' => now()->add($interval->value, 3)],
+            ['created_at' => now()->add($interval->value, 4)],
+            // missing kpi 5
+            // missing kpi 6
+            ['created_at' => now()->add($interval->value, 7)],
+            // missing kpi 8
+        )->number()->make(['key' => 'users:count'])
+    );
+    expect($collectionWithGaps->count())->toBe(4);
+
+    $collectionWithoutGaps = $collectionWithGaps->fillGaps(
+        start: now()->add($interval->value, 0),
+        end: now()->add($interval->value, 8),
+        interval: $interval
+    );
+
+    expect($collectionWithoutGaps->count())->toBe(9);
+
+    expect($collectionWithoutGaps->get(0)->number_value)->toBe($collectionWithoutGaps->get(1)->number_value);
+    expect($collectionWithoutGaps->get(2)->number_value)->toBe($collectionWithoutGaps->get(1)->number_value);
+    expect($collectionWithoutGaps->get(6)->number_value)->toBe($collectionWithoutGaps->get(4)->number_value);
+    expect($collectionWithoutGaps->get(8)->number_value)->toBe($collectionWithoutGaps->get(7)->number_value);
+
 })->with($supportedIntervals);
 
 it('can combine two KpiCollections', function (KpiInterval $interval) {
