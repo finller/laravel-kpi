@@ -96,6 +96,10 @@ class KpiCollection extends Collection
 
         $dateFormatComparator = $interval->dateFormatComparator();
 
+        if ($start->isAfter($end)) {
+            return $items;
+        }
+
         $date = $start->clone();
         $key = 0;
 
