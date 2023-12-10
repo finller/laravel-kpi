@@ -115,16 +115,15 @@ class KpiBuilder
 
     public function getQuery(): Builder
     {
-        $start = $this->start;
-
-        if ($this->start && $this->relative && $this->interval) {
-            $start = $this->start->sub($this->interval->value, 1);
-        }
+        $start = $this->relative && $this->interval
+            // When querying for relative values, we must get one additionnal interval in the past to compute difference
+            ? $this->start?->clone()->sub($this->interval->value, 1)
+            : $this->start;
 
         return $this->builder
-            ->when($this->interval, fn ($q) => $q->perInterval($this->interval)) // @phpstan-ignore-line
             ->when($start, fn ($q) => $q->where('kpis.created_at', '>=', $start))
-            ->when($this->end, fn ($q) => $q->where('kpis.created_at', '<=', $this->end));
+            ->when($this->end, fn ($q) => $q->where('kpis.created_at', '<=', $this->end))
+            ->when($this->interval, fn ($q) => $q->perInterval($this->interval));
     }
 
     public function fillGaps(?array $defaultGapValue = null): static
@@ -157,8 +156,18 @@ class KpiBuilder
         /** @var KpiCollection */
         $kpis = $this->getQuery()->get();
 
-        if ($this->relative) {
-            $kpis = $kpis->toRelative()->skip(1)->values();
+        if ($this->relative && $this->interval) {
+            // When querying relative values we have included one additional interval for computation purpose only
+            $kpis = $kpis
+                ->fillGaps(
+                    start: $this->start,
+                    end: $this->end,
+                    interval: $this->interval,
+                    default: $this->defaultGapValue
+                )
+                ->toRelative()
+                ->skip(1)
+                ->values();
         }
 
         if ($this->fillGaps) {

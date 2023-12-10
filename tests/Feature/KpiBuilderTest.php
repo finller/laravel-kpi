@@ -112,8 +112,8 @@ it('can query kpis with gaps filled on period', function (KpiInterval $interval)
 
 it('can query kpis as relative on period', function (KpiInterval $interval) {
     $key = "test:KpiBuilder:toRelative:{$interval->value}";
-    $start = now()->startOfDay()->sub($interval->value, 10);
     $end = now()->startOfDay();
+    $start = $end->clone()->sub($interval->value, 10);
 
     $period = CarbonPeriod::between($start, $end)->interval("1 {$interval->value}");
 
@@ -121,7 +121,7 @@ it('can query kpis as relative on period', function (KpiInterval $interval) {
     $seededKpis = Kpi::factory([
         'key' => $key,
     ])->number()->between(
-        $start->sub($interval->value, 1),
+        $start->sub($interval->value, 1), // because of relative query, we need to seed 1 internal before the start of the query
         $end,
         $interval
     )->create();
@@ -136,8 +136,8 @@ it('can query kpis as relative on period', function (KpiInterval $interval) {
 
     expect($kpis)->toHaveCount($period->count());
 
-    expect($kpis->get(0)->number_value)
-        ->toBe($seededKpis->get(1)->number_value - $seededKpis->get(0)->number_value);
+    expect($kpis->get(1)->number_value)
+        ->toBe($seededKpis->get(2)->number_value - $seededKpis->get(1)->number_value);
 
     expect($kpis->last()->number_value)
         ->toBe($seededKpis->last()->number_value - $seededKpis->get($seededKpis->count() - 2)->number_value);

@@ -124,6 +124,7 @@ class Kpi extends Model
     {
         // @phpstan-ignore-next-line
         return new static([
+            ...$this->attributesToArray(),
             'number_value' => $this->toNumberDifference($kpi?->number_value, $relative),
             'money_value' => $this->toMoneyDifference($kpi?->money_value, $relative),
             'json_value' => null,
@@ -137,6 +138,7 @@ class Kpi extends Model
     public function toVariation(?Kpi $kpi): array
     {
         return [
+            ...$this->attributesToArray(),
             'number_value' => $this->toNumberVariation($kpi?->number_value),
             'money_value' => $this->toMoneyVariation($kpi?->money_value),
             'json_value' => null,

@@ -103,6 +103,26 @@ it('can fill gaps between items with explicite state', function (KpiInterval $in
 
 })->with($supportedIntervals);
 
+it('can fill gaps between with an empty collection by including start and end date', function () {
+
+    $interval = KpiInterval::Month;
+
+    $collectionWithGaps = new KpiCollection();
+
+    expect($collectionWithGaps->count())->toBe(0);
+
+    $collectionWithoutGaps = $collectionWithGaps->fillGaps(
+        start: Carbon::parse('2022-12-10 15:39:32'),
+        end: Carbon::parse('2023-12-10 15:39:32'),
+        interval: $interval,
+        default: [
+            'number_value' => 0,
+        ]
+    );
+
+    expect($collectionWithoutGaps->count())->toBe(13);
+});
+
 it('can combine two KpiCollections', function (KpiInterval $interval) {
     $now = now();
 
