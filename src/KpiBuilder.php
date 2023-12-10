@@ -30,7 +30,7 @@ class KpiBuilder
         //
     }
 
-    public static function query(string|Builder $builder = null): self
+    public static function query(string|Builder|null $builder = null): self
     {
         $model = config('kpi.kpi_model');
 
@@ -52,7 +52,7 @@ class KpiBuilder
         return $this;
     }
 
-    public function between(CarbonInterface $start = null, CarbonInterface $end = null): static
+    public function between(?CarbonInterface $start = null, ?CarbonInterface $end = null): static
     {
         $this->start = $start;
         $this->end = $end;
@@ -115,7 +115,7 @@ class KpiBuilder
             ->when($this->end, fn ($q) => $q->where('kpis.created_at', '<=', $this->end));
     }
 
-    public function fillGaps(array $defaultGapValue = null): static
+    public function fillGaps(?array $defaultGapValue = null): static
     {
         $this->fillGaps = true;
         $this->defaultGapValue = $defaultGapValue;

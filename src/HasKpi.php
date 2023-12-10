@@ -27,7 +27,7 @@ trait HasKpi
      *
      * @return Collection<string, callable|Kpi>
      */
-    public static function registerDefaultKpis(Carbon $date = null): Collection
+    public static function registerDefaultKpis(?Carbon $date = null): Collection
     {
         $model = config('kpi.kpi_model');
 
@@ -48,7 +48,7 @@ trait HasKpi
      *
      * @param  null|string[]  $only Array of kpi keys to snapshot
      */
-    public static function snapshotKpis(Carbon $date = null, array $only = null, array $except = null): Collection
+    public static function snapshotKpis(?Carbon $date = null, ?array $only = null, ?array $except = null): Collection
     {
         $kpis = static::registerDefaultKpis($date);
 
@@ -82,8 +82,8 @@ trait HasKpi
         Carbon $start,
         Carbon $end,
         ?KpiInterval $interval = KpiInterval::Day,
-        array $onlyKeys = null,
-        array $exceptKeys = null,
+        ?array $onlyKeys = null,
+        ?array $exceptKeys = null,
         array $exceptDates = [],
     ): Collection {
         $kpis = collect();

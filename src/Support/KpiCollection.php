@@ -23,8 +23,8 @@ class KpiCollection extends Collection
      */
     public function findGaps(
         KpiInterval $interval,
-        Carbon $start = null,
-        Carbon $end = null,
+        ?Carbon $start = null,
+        ?Carbon $end = null,
     ): SupportCollection {
         if ($this->count() < 2) {
             return collect();
@@ -68,10 +68,10 @@ class KpiCollection extends Collection
     }
 
     public function fillGaps(
-        Carbon $start = null,
-        Carbon $end = null,
-        KpiInterval $interval = null,
-        array $default = null
+        ?Carbon $start = null,
+        ?Carbon $end = null,
+        ?KpiInterval $interval = null,
+        ?array $default = null
     ): static {
         /** @var Kpi */
         $model = config('kpi.kpi_model');
