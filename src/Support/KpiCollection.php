@@ -96,12 +96,11 @@ class KpiCollection extends Collection
 
         $dateFormatComparator = $interval->dateFormatComparator();
 
-        $period = CarbonPeriod::start($start, inclusive: true)
-            ->end($end, inclusive: true)
-            ->interval("1 {$interval->value}");
+        $date = $start->clone();
+        $key = 0;
 
-        /** @var Carbon $date */
-        foreach ($period as $key => $date) {
+        while (! $date->isSameAs($dateFormatComparator, $end->clone()->add($interval->value, 1))) {
+
             $item = $items->get($key);
             $previousItem = $items->get($key - 1); // will be used as a placeholder if no default is provided
             $firstItem = $items->first(); // will be used as a placeholder if the first date is missing
@@ -122,6 +121,9 @@ class KpiCollection extends Collection
                     replacement: [$placeholder]
                 );
             }
+
+            $date->add($interval->value, 1);
+            $key += 1;
         }
 
         return $items;
