@@ -34,7 +34,7 @@ php artisan migrate
 This package is **not a query builder**, it's based on a kpi table where you will store all your kpis.
 With this approach, your kpis from the past (like the number of users you had a year ago) will not be altered if you permanently delete a model.
 
-Retreiving kpis will aslo be much more efficient when asking for computed values that often require join like "users who have purchased last week" for example.
+Retreiving kpis will also be much more efficient when asking for computed values that often require join like "users who have purchased last week" for example.
 
 ### Step 1: Store kpis in you database
 
